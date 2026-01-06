@@ -253,6 +253,28 @@ pnpx prisma migrate dev --name <name>  # Create migration
 pnpx prisma generate  # Regenerate client (required after schema changes)
 ```
 
+### Checking Dev Server Output
+To see dev server logs (including browser console output):
+
+```typescript
+// Use get_task_output for the running dev task
+get_task_output({
+  id: "shell: pnpm dev",
+  workspaceFolder: "o:/Redundant Local/ai-get-interface"
+})
+```
+
+**What you'll see:**
+- Next.js compilation status
+- Route requests (GET /api/..., etc.)
+- Browser console.log/error/warn output
+- API endpoint logs
+- Build warnings
+
+**Never do:**
+- ❌ `lsof`, `netstat`, `ps`, `pidof` to check processes
+- ❌ `pkill`, `kill` to manage processes
+
 ### Terminal Quirk ⚠️
 The terminal occasionally clips the first character of commands. If a command fails unexpectedly, verify the output said something like "d" is not a valid command (in the case of cd) and then **retry the exact same command** - it will work on second attempt.
 

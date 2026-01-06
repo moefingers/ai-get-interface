@@ -24,7 +24,7 @@ export function Sidebar({ children }: SidebarProps) {
           'border-r',
           tw.border.muted,
           'transition-all duration-300 ease-in-out',
-          isOpen ? 'w-[260px]' : 'w-0'
+          isOpen ? 'w-65' : 'w-0'
         )}
       >
         {/* Sidebar Header */}
@@ -82,7 +82,7 @@ export function Sidebar({ children }: SidebarProps) {
       <div
         className={cn(
           'transition-all duration-300 ease-in-out',
-          isOpen ? 'pl-[260px]' : 'pl-0'
+          isOpen ? 'pl-65' : 'pl-0'
         )}
       />
     </>
