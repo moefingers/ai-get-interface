@@ -1,0 +1,16 @@
+onlyBuiltDependencies:
+  - /
+  - '@'
+  - '@prisma/engines'
+  - a
+  - e
+  - esbuild
+  - g
+  - i
+  - m
+  - n
+  - p
+  - prisma
+  - r
+  - s
+  - sharp

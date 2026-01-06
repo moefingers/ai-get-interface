@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+/*
+ * Theme Configuration
+ * 
+ * All CSS variables used by tw-theme.ts are defined here.
+ * When adding a new variable, also add it to tw-theme.ts.
+ * 
+ * Design: Dark theme inspired by ChatGPT/Gemini's interface
+ */
+
+@theme {
+  /* ========================================
+   * COLOR PALETTE
+   * ======================================== */
+  
+  /* Text Colors */
+  --color-text: #ffffff;
+  --color-text-secondary: #b4b4b4;
+  --color-text-muted: #6b6b6b;
+  --color-text-on-primary: #ffffff;
+  
+  /* Background Colors */
+  --color-background: #0d0d0d;
+  --color-background-card: #1a1a1a;
+  --color-background-sidebar: #171717;
+  --color-background-elevated: #262626;
+  --color-overlay: rgba(0, 0, 0, 0.7);
+  
+  /* Interactive States */
+  --color-hover: #2a2a2a;
+  --color-active: #333333;
+  --color-disabled: #1f1f1f;
+  --color-focus: #3b82f6;
+  
+  /* Primary Brand Color */
+  --color-primary: #10a37f;
+  --color-primary-hover: #0e906f;
+  --color-primary-active: #0c7d5f;
+  --color-primary-muted: rgba(16, 163, 127, 0.15);
+  
+  /* Accent Color */
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-accent-muted: rgba(59, 130, 246, 0.15);
+  
+  /* Semantic Colors */
+  --color-success: #22c55e;
+  --color-success-muted: rgba(34, 197, 94, 0.15);
+  --color-warning: #f59e0b;
+  --color-warning-muted: rgba(245, 158, 11, 0.15);
+  --color-error: #ef4444;
+  --color-error-hover: #dc2626;
+  --color-error-active: #b91c1c;
+  --color-error-muted: rgba(239, 68, 68, 0.15);
+  
+  /* Border Colors */
+  --color-border: #2e2e2e;
+  --color-border-muted: #1f1f1f;
+  
+  /* ========================================
+   * TYPOGRAPHY
+   * ======================================== */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  
+  /* ========================================
+   * SPACING (custom additions)
+   * ======================================== */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 0px;
+  --header-height: 56px;
+  --input-height: 52px;
+  
+  /* ========================================
+   * TRANSITIONS
+   * ======================================== */
+  --transition-fast: 150ms;
+  --transition-normal: 200ms;
+  --transition-slow: 300ms;
+  
+  /* ========================================
+   * SHADOWS
+   * ======================================== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-elevated: 0 25px 50px rgba(0, 0, 0, 0.6);
+  
+  /* ========================================
+   * BORDER RADIUS
+   * ======================================== */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+}
+
+/*
+ * Base Styles
+ */
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+ * Scrollbar Styling (WebKit)
+ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/*
+ * Focus visible outline (accessibility)
+ */
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/*
+ * Selection styling
+ */
+::selection {
+  background-color: var(--color-primary-muted);
+  color: var(--color-text);
+}

@@ -1,0 +1,98 @@
+// This is your Prisma schema file
+// Learn more at: https://pris.ly/d/prisma-schema
+
+// ============================================
+// PRISMA 7 CONFIGURATION
+// ============================================
+// Database URL is configured in prisma.config.ts
+// Runtime adapter configured in src/lib/db.ts
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+/// User account managed by Stack Auth
+/// Stack Auth handles email, password, sessions externally
+model User {
+  id              String   @id @default(cuid())
+  stackAuthId     String   @unique @map("stack_auth_id")
+  displayName     String?  @map("display_name")
+  
+  /// Unique seed for TOTP-style auth calculation
+  /// Generated at signup, used in HMAC-SHA256(seed, floor(timestamp/30))
+  algorithmSeed   String   @unique @map("algorithm_seed") @db.VarChar(64)
+  
+  /// Tolerance window in seconds for time-based auth (default 30)
+  toleranceSeconds Int     @default(30) @map("tolerance_seconds")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  lists           List[]
+
+  @@map("users")
+}
+
+/// User-created list that AI assistants can append items to
+model List {
+  id          String   @id @default(cuid())
+  
+  /// Human-readable name
+  name        String
+  
+  /// URL-friendly slug (unique per user)
+  slug        String
+  
+  /// Per-list auth token for API access
+  /// Allows granular revocation without affecting other lists
+  authToken   String   @unique @map("auth_token") @db.VarChar(64)
+  
+  /// Optional AI model association for instruction generation
+  /// e.g., "gemini", "chatgpt", "google-assistant"
+  aiModel     String?  @map("ai_model")
+  
+  /// Whether the list is active (can receive new items)
+  isActive    Boolean  @default(true) @map("is_active")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  items       ListItem[]
+
+  @@unique([userId, slug])
+  @@index([authToken])
+  @@map("lists")
+}
+
+/// Item added to a list (typically by AI assistants via GET API)
+model ListItem {
+  id        String   @id @default(cuid())
+  
+  /// The content/data of the item
+  /// Stored as JSON to support structured data from query params
+  content   Json
+  
+  /// Source identifier (e.g., "gemini", "chatgpt", "manual")
+  source    String?
+  
+  /// When the item was added
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  listId    String   @map("list_id")
+  list      List     @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@index([listId, createdAt(sort: Desc)])
+  @@map("list_items")
+}
