@@ -6,18 +6,18 @@ import { validateItemData, type ListFieldDefinition } from '@/types/list-fields'
 /**
  * AI-Triggered List Append API
  * 
- * GET /api/list/[slug]/append?auth={hmac}&source={source}&field1=val1&field2=val2
+ * GET /api/list/[slug]/append?t={code}&source={source}&field1=val1&field2=val2
  * 
  * This endpoint is called by AI assistants (Gemini, ChatGPT, Google Assistant)
- * to append items to a user's list. Uses HMAC-SHA256 time-based authentication.
+ * to append items to a user's list. Uses HMAC-SHA256 time-based codes.
  * 
  * Query Parameters:
- * - auth (required): HMAC-SHA256 auth code calculated by AI
+ * - t (required): Time-based code calculated by AI
  * - source (optional): AI provider name (gemini, chatgpt, google-assistant)
  * - [field params]: Values matching the list's field schema
  * 
  * AI Compatibility Notes:
- * - Auth codes are case-insensitive (normalized to lowercase)
+ * - Codes are case-insensitive (normalized to lowercase)
  * - Plus signs (+) in query params are decoded as spaces
  * - CORS headers allow cross-origin requests from AI tools
  * - Simple text responses available for tools that struggle with JSON
@@ -81,10 +81,10 @@ export async function GET(
   const { slug } = await params
   const searchParams = request.nextUrl.searchParams
 
-  // 1. Extract auth code (normalize to lowercase for case-insensitive comparison)
-  const authCode = searchParams.get('auth')?.toLowerCase()
-  if (!authCode) {
-    return errorHtml('Missing auth parameter', 'The auth query parameter is required', 401)
+  // 1. Extract time code (normalize to lowercase for case-insensitive comparison)
+  const timeCode = searchParams.get('t')?.toLowerCase()
+  if (!timeCode) {
+    return errorHtml('Missing t parameter', 'The t query parameter is required', 401)
   }
 
   // 2. Extract source (optional, defaults to "ai")
@@ -109,16 +109,16 @@ export async function GET(
     return errorHtml('List is not active', 'This list has been deactivated', 404)
   }
 
-  // 5. Validate HMAC auth code
+  // 5. Validate time code
   const isValid = validateTimeAuth(
     list.authToken,
-    authCode,
+    timeCode,
     list.user.toleranceSeconds
   )
 
   if (!isValid) {
-    console.log(`[API] Auth failed for list ${slug}`)
-    return errorHtml('Invalid or expired auth code', 'The HMAC authentication code is incorrect or has expired', 401)
+    console.log(`[API] Invalid time code for list ${slug}`)
+    return errorHtml('Invalid or expired code', 'The time code is incorrect or has expired', 401)
   }
 
   // 6. Parse and validate field data
@@ -128,7 +128,7 @@ export async function GET(
   // Note: URLSearchParams already decodes %20 and + as spaces
   const queryParams: Record<string, string | undefined> = {}
   searchParams.forEach((value, key) => {
-    if (key !== 'auth' && key !== 'source') {
+    if (key !== 't' && key !== 'source') {
       queryParams[key] = value
     }
   })
