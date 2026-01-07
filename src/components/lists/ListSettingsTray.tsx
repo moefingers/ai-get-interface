@@ -51,7 +51,7 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
   const instructions = generateAiInstructions(selectedModel, {
     listName: list.name,
     slug: list.slug,
-    token: 'YOUR_LIST_TOKEN', // TODO: Get actual token from list
+    token: list.authToken,
     domain: typeof window !== 'undefined' ? window.location.origin : 'https://example.com',
     fields: fields.map((f) => ({
       name: f.name,

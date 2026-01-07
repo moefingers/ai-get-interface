@@ -51,6 +51,7 @@ export default async function ListPage({ params }: ListPageProps) {
         id: l.id,
         name: l.name,
         slug: l.slug,
+        authToken: l.authToken,
         aiModel: l.aiModel,
         fields: JSON.stringify(l.fields),
         isDraft: l.isDraft,
