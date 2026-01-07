@@ -11,9 +11,9 @@ export interface AppShellProps {
 
 export function AppShell({ children, sidebarContent }: AppShellProps) {
   return (
-    <div className={cn('min-h-screen', tw.bg.main)}>
+    <div className={cn('min-h-screen flex', tw.bg.main)}>
       <Sidebar>{sidebarContent}</Sidebar>
-      <main className="min-h-screen flex flex-col">
+      <main className="flex-1 min-h-screen flex flex-col">
         {children}
       </main>
     </div>
