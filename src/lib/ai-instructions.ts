@@ -70,14 +70,30 @@ export function generateAiInstructions(
 ): string {
   const { listName, slug, token, domain, fields } = params
   
-  // Condensed algorithm - must fit in ~1495 char total instructions
+  // Model-specific time terminology
+  const timeRef = model === 'chatgpt' 
+    ? 'current UTC time as Unix timestamp (seconds since 1970)'
+    : 'system clock as Unix timestamp (seconds since 1970)'
+  
+  // Algorithm explanation - uses model's native time terminology
   const algorithmBlock = `
-## t Parameter
+## How to Calculate t
+
+1. Get ${timeRef}
+2. Divide by 30 and floor it: m = floor(timestamp / 30)
+3. Convert m to a string - this is your message
+
+Now compute t using this key:
 Key: ${token}
-m = floor(unix_seconds / 30) as string
-ipad = key padded to 64 bytes, each XOR 0x36
-opad = key padded to 64 bytes, each XOR 0x5c
-t = SHA256(opad + SHA256(ipad + m)) as lowercase hex
+
+Steps:
+- Pad key with zeros to 64 bytes
+- Create ipad: XOR each byte of padded key with 0x36
+- Create opad: XOR each byte of padded key with 0x5c
+- inner = SHA256(ipad + message)
+- t = SHA256(opad + inner) as lowercase hex
+
+Example: If timestamp = 1736208000, then m = "57873600"
 `.trim()
 
   // Build field params string
@@ -90,11 +106,16 @@ t = SHA256(opad + SHA256(ipad + m)) as lowercase hex
     .map((f) => `- ${f.name} (${f.required ? 'required' : 'optional'}): ${f.label} [${f.type}]`)
     .join('\n')
 
-  // Endpoint format - condensed
+  // Endpoint format with field info
   const endpointBlock = `
-## URL
+## Endpoint
+
 GET ${domain}/api/list/${slug}/append?t={t}&source=${model}&${fieldParams}
-URL-encode values.
+
+Fields:
+${fieldDefs}
+
+URL-encode all values. Replace {t} with the computed value.
 `.trim()
 
   switch (model) {
@@ -117,8 +138,15 @@ function generateGeminiInstructions(
 ): string {
   return `
 # ${listName}
-When I say "add X to ${listName}", compute t, build URL, fetch it, tell me the response.
+
+When I mention "${listName}" or ask to add something to it:
+1. Compute t using current time and the formula below
+2. Build the URL with the item
+3. Fetch the URL
+4. Tell me what the response says
+
 ${algorithmBlock}
+
 ${endpointBlock}
 `.trim()
 }
@@ -131,9 +159,18 @@ function generateChatGptInstructions(
 ): string {
   return `
 # ${listName}
-When I say "add X to ${listName}", compute t, build URL, fetch it, tell me the response.
+
+When I mention "${listName}" or ask to add something to it:
+1. Get the current Unix timestamp
+2. Compute t using the formula below (XOR + SHA256)
+3. Build the URL with the item filled in
+4. Fetch the URL and tell me the response
+
 ${algorithmBlock}
+
 ${endpointBlock}
+
+You can do XOR, SHA256, and fetch URLs. Do the math and make the request.
 `.trim()
 }
 
