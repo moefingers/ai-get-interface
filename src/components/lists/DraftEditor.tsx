@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect, useRef, useCallback } from 'react'
+import { useState, useTransition, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Save, Eye, Pencil } from 'lucide-react'
 import { Button, Input, Label, Select, ColumnHider, RowHider, SlidingView, SlidingViewItem } from '@/components/ui'
 import { cn } from '@/lib/cn'
@@ -83,13 +83,16 @@ export function DraftEditor({
   const isInitialMount = useRef(true)
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
 
-  // Get external fields (exclude leaving ones)
-  const externalFields = toExternalFields(fields)
+  // Get external fields (exclude leaving ones) - memoized to prevent constant re-renders
+  const externalFields = useMemo(() => toExternalFields(fields), [fields])
+  // Stable JSON string for effect dependency comparison
+  const externalFieldsJson = useMemo(() => JSON.stringify(externalFields), [externalFields])
   // Get visible fields (all, including leaving - for animation)
   const visibleFields = fields
 
-  // Auto-save function
-  const saveChanges = useCallback(async () => {
+  // Auto-save function - uses ref to avoid recreating callback on every field change
+  const saveChangesRef = useRef<() => Promise<void>>(undefined)
+  saveChangesRef.current = async () => {
     setSaveStatus('saving')
     const result = await updateDraft({
       listId,
@@ -109,9 +112,13 @@ export function DraftEditor({
       setSaveStatus('error')
       setError(result.error)
     }
-  }, [listId, name, aiModel, externalFields, initialName, onNameChanged])
+  }
+  
+  const saveChanges = useCallback(() => {
+    return saveChangesRef.current?.()
+  }, [])
 
-  // Debounced auto-save effect
+  // Debounced auto-save effect - uses stable primitive dependencies
   useEffect(() => {
     // Skip on initial mount
     if (isInitialMount.current) {
@@ -138,7 +145,8 @@ export function DraftEditor({
         clearTimeout(debounceTimer.current)
       }
     }
-  }, [name, aiModel, externalFields, saveChanges])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Using stable JSON string instead of object reference
+  }, [name, aiModel, externalFieldsJson])
 
   const addField = () => {
     const newId = generateFieldId()
