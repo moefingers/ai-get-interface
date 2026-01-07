@@ -2,11 +2,10 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Settings } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
 import { AppShell, type UserList } from '@/components/layout'
-import { DraftEditor, ListSettingsTray } from '@/components/lists'
+import { DraftEditor, ListSettingsTray, ListInputBar } from '@/components/lists'
 import type { ListFieldDefinition } from '@/types/list-fields'
 import type { AiModel } from '@/lib/ai-instructions'
 
@@ -118,7 +117,7 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
         />
       )}
 
-      {/* Settings tray - slides up above input */}
+      {/* Settings tray and input bar */}
       {selectedList && !selectedList.isDraft && (
         <div className={cn('border-t', tw.border.muted, tw.bg.main)}>
           <ListSettingsTray
@@ -128,38 +127,16 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
             onRenamed={handleListRenamed}
           />
 
-          {/* Input area at bottom */}
-          <div className="p-4">
-            <div className="max-w-3xl mx-auto">
-              <div className={cn('flex items-center gap-2 p-3 rounded-xl', tw.bg.card, 'border', tw.border.default)}>
-                <button
-                  type="button"
-                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                  className={cn(
-                    'p-2 rounded-lg transition-colors',
-                    isSettingsOpen ? tw.text.accent : tw.text.muted,
-                    tw.hover.text.primary,
-                    tw.hover.bg.subtle
-                  )}
-                  title="List settings"
-                >
-                  <Settings className="w-5 h-5" />
-                </button>
-                <input
-                  type="text"
-                  placeholder={`Add to ${selectedList.name}...`}
-                  className={cn(
-                    'flex-1 bg-transparent border-none outline-none',
-                    tw.text.primary,
-                    tw.placeholder.default
-                  )}
-                />
-                <button className={cn(tw.btn.primary, 'px-4 py-2')}>
-                  Add
-                </button>
-              </div>
-            </div>
-          </div>
+          <ListInputBar
+            listName={selectedList.name}
+            fields={getFields(selectedList)}
+            isSettingsOpen={isSettingsOpen}
+            onToggleSettings={() => setIsSettingsOpen(!isSettingsOpen)}
+            onSubmit={(values) => {
+              // TODO: Submit item to list
+              console.log('Submit:', values)
+            }}
+          />
         </div>
       )}
     </AppShell>
