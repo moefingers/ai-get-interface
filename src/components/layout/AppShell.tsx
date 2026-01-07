@@ -9,7 +9,7 @@ export interface AppShellProps {
   lists?: UserList[]
   selectedListId?: string
   onSelectList?: (listId: string) => void
-  onListCreated?: (listId: string) => void
+  onListCreated?: (listId: string, slug: string) => void
 }
 
 export function AppShell({ 

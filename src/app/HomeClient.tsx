@@ -14,9 +14,9 @@ export interface HomeClientProps {
 export function HomeClient({ userName, initialLists }: HomeClientProps) {
   const router = useRouter()
 
-  const handleListCreated = useCallback((listId: string) => {
-    // Find the newly created draft and navigate to it
-    router.refresh()
+  const handleListCreated = useCallback((listId: string, slug: string) => {
+    // Navigate to the newly created draft
+    router.push(`/lists/${slug}`)
   }, [router])
 
   const handleSelectList = useCallback((listId: string) => {

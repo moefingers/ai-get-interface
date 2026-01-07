@@ -25,7 +25,7 @@ export interface SidebarProps {
   lists?: UserList[]
   selectedListId?: string
   onSelectList?: (listId: string) => void
-  onListCreated?: (listId: string) => void
+  onListCreated?: (listId: string, slug: string) => void
 }
 
 export function Sidebar({ 
@@ -58,8 +58,7 @@ export function Sidebar({
     startTransition(async () => {
       const result = await createDraft()
       if (result.success) {
-        onListCreated?.(result.list.id)
-        onSelectList?.(result.list.id)
+        onListCreated?.(result.list.id, result.list.slug)
         // Close sidebar on mobile after creating
         if (isMobile) setIsOpen(false)
       }
@@ -103,7 +102,7 @@ export function Sidebar({
           {/* Sidebar Header */}
           <div
             className={cn(
-              'h-14 flex items-center justify-between px-3',
+              'h-14 flex items-center justify-end px-3',
               'border-b',
               tw.border.muted
             )}

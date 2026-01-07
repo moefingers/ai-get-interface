@@ -51,10 +51,9 @@ export function ListPageClient({ userName, currentList, allLists }: ListPageClie
     }
   }, [currentList.id, currentList.isDraft])
 
-  const handleListCreated = useCallback((listId: string) => {
-    // For new drafts, we need the slug - refresh to get it
-    // The draft will have a temporary slug like draft-{timestamp}
-    router.refresh()
+  const handleListCreated = useCallback((listId: string, slug: string) => {
+    // Navigate to the newly created draft
+    router.push(`/lists/${slug}`)
   }, [router])
 
   const handleSelectList = useCallback((listId: string) => {
