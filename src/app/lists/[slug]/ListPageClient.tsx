@@ -9,6 +9,7 @@ import { DraftEditor, ListSettingsTray, ListInputBar } from '@/components/lists'
 import { addItem, getListItems } from '@/app/lists/actions'
 import type { ListFieldDefinition } from '@/types/list-fields'
 import type { AiModel } from '@/lib/ai-instructions'
+import { Settings } from 'lucide-react'
 
 interface ListItemData {
   id: string
@@ -219,7 +220,7 @@ function ListContent({ list, items, fields, isLoading }: ListContentProps) {
           </div>
         ) : items.length === 0 ? (
           <div className={cn('text-center py-12', tw.text.muted)}>
-            No items yet. Add items via your AI assistant or manually below.
+            No items yet. Add items via your AI assistant or manually below. To configure an AI assistant, follow the instructions in the settings below. "<Settings className="inline-block w-4 h-4 mb-0.5" />"
           </div>
         ) : (
           <div className="space-y-2">
