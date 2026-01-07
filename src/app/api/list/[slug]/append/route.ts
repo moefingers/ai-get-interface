@@ -15,10 +15,33 @@ import { validateItemData, type ListFieldDefinition } from '@/types/list-fields'
  * - auth (required): HMAC-SHA256 auth code calculated by AI
  * - source (optional): AI provider name (gemini, chatgpt, google-assistant)
  * - [field params]: Values matching the list's field schema
+ * 
+ * AI Compatibility Notes:
+ * - Auth codes are case-insensitive (normalized to lowercase)
+ * - Plus signs (+) in query params are decoded as spaces
+ * - CORS headers allow cross-origin requests from AI tools
+ * - Simple text responses available for tools that struggle with JSON
  */
+
+// CORS headers for AI tools that use browser-based fetch
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+// Helper to create JSON response with CORS
+function jsonResponse(data: object, status: number = 200): NextResponse {
+  return NextResponse.json(data, { status, headers: corsHeaders })
+}
 
 interface RouteParams {
   params: Promise<{ slug: string }>
+}
+
+// Handle CORS preflight
+export async function OPTIONS(): Promise<NextResponse> {
+  return new NextResponse(null, { status: 204, headers: corsHeaders })
 }
 
 export async function GET(
@@ -28,12 +51,12 @@ export async function GET(
   const { slug } = await params
   const searchParams = request.nextUrl.searchParams
 
-  // 1. Extract auth code
-  const authCode = searchParams.get('auth')
+  // 1. Extract auth code (normalize to lowercase for case-insensitive comparison)
+  const authCode = searchParams.get('auth')?.toLowerCase()
   if (!authCode) {
-    return NextResponse.json(
+    return jsonResponse(
       { success: false, error: 'Missing auth parameter' },
-      { status: 401 }
+      401
     )
   }
 
@@ -47,24 +70,24 @@ export async function GET(
   })
 
   if (!list) {
-    return NextResponse.json(
+    return jsonResponse(
       { success: false, error: 'List not found' },
-      { status: 404 }
+      404
     )
   }
 
   // 4. Check list is published and active
   if (list.isDraft) {
-    return NextResponse.json(
+    return jsonResponse(
       { success: false, error: 'List is not published' },
-      { status: 404 }
+      404
     )
   }
 
   if (!list.isActive) {
-    return NextResponse.json(
+    return jsonResponse(
       { success: false, error: 'List is not active' },
-      { status: 404 }
+      404
     )
   }
 
@@ -77,9 +100,9 @@ export async function GET(
 
   if (!isValid) {
     console.log(`[API] Auth failed for list ${slug}`)
-    return NextResponse.json(
+    return jsonResponse(
       { success: false, error: 'Invalid or expired auth code' },
-      { status: 401 }
+      401
     )
   }
 
@@ -87,6 +110,7 @@ export async function GET(
   const fields = list.fields as unknown as ListFieldDefinition[]
   
   // Build query params object (excluding reserved params)
+  // Note: URLSearchParams already decodes %20 and + as spaces
   const queryParams: Record<string, string | undefined> = {}
   searchParams.forEach((value, key) => {
     if (key !== 'auth' && key !== 'source') {
@@ -96,9 +120,9 @@ export async function GET(
 
   const validation = validateItemData(queryParams, fields)
   if (!validation.valid) {
-    return NextResponse.json(
+    return jsonResponse(
       { success: false, error: 'Validation failed', details: validation.errors },
-      { status: 400 }
+      400
     )
   }
 
@@ -123,7 +147,7 @@ export async function GET(
     const existingContent = JSON.stringify(duplicate.content)
     if (existingContent === contentJson) {
       console.log(`[API] Duplicate detected for list ${slug}, skipping`)
-      return NextResponse.json({
+      return jsonResponse({
         success: true,
         duplicate: true,
         message: 'Item already exists (duplicate within same minute)',
@@ -148,7 +172,7 @@ export async function GET(
 
   console.log(`[API] Item added to list ${slug} from ${source}`)
 
-  return NextResponse.json({
+  return jsonResponse({
     success: true,
     item: {
       id: item.id,
