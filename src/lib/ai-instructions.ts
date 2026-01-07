@@ -122,9 +122,9 @@ Example: If timestamp = 1736208000, then m = "57873600"
 
   // Endpoint format with field info
   const endpointBlock = `
-## Endpoint
+## URL
 
-GET ${domain}/api/list/${slug}/append?t={t}&source=${model}&${fieldParams}
+GET ${domain}/go/${slug}/add?t={t}&source=${model}&${fieldParams}
 
 Fields:
 ${fieldDefs}

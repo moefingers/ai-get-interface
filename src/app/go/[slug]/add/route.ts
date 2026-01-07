@@ -4,26 +4,19 @@ import { validateTimeAuth } from '@/lib/auth-utils'
 import { validateItemData, type ListFieldDefinition } from '@/types/list-fields'
 
 /**
- * AI-Triggered List Append API
+ * AI List Add Endpoint
  * 
- * GET /api/list/[slug]/append?t={code}&source={source}&field1=val1&field2=val2
+ * GET /go/[slug]/add?t={code}&source={source}&field1=val1&field2=val2
  * 
- * This endpoint is called by AI assistants (Gemini, ChatGPT, Google Assistant)
- * to append items to a user's list. Uses HMAC-SHA256 time-based codes.
+ * Called by AI assistants to add items to a user's list.
  * 
  * Query Parameters:
- * - t (required): Time-based code calculated by AI
- * - source (optional): AI provider name (gemini, chatgpt, google-assistant)
- * - [field params]: Values matching the list's field schema
- * 
- * AI Compatibility Notes:
- * - Codes are case-insensitive (normalized to lowercase)
- * - Plus signs (+) in query params are decoded as spaces
- * - CORS headers allow cross-origin requests from AI tools
- * - Simple text responses available for tools that struggle with JSON
+ * - t (required): Time-based code
+ * - source (optional): Which AI sent it (gemini, chatgpt, etc)
+ * - [field params]: Values for the list fields
  */
 
-// CORS headers for AI tools that use browser-based fetch
+// CORS headers for AI tools
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -117,7 +110,7 @@ export async function GET(
   )
 
   if (!isValid) {
-    console.log(`[API] Invalid time code for list ${slug}`)
+    console.log(`[GO] Invalid time code for list ${slug}`)
     return errorHtml('Invalid or expired code', 'The time code is incorrect or has expired', 401)
   }
 
@@ -158,7 +151,7 @@ export async function GET(
   if (duplicate) {
     const existingContent = JSON.stringify(duplicate.content)
     if (existingContent === contentJson) {
-      console.log(`[API] Duplicate detected for list ${slug}, skipping`)
+      console.log(`[GO] Duplicate detected for list ${slug}, skipping`)
       const contentPreview = Object.entries(validation.data)
         .map(([k, v]) => `${k}=${v}`)
         .join(', ')
@@ -175,7 +168,7 @@ export async function GET(
     },
   })
 
-  console.log(`[API] Item added to list ${slug} from ${source}`)
+  console.log(`[GO] Item added to list ${slug} from ${source}`)
 
   const contentPreview = Object.entries(item.content as Record<string, unknown>)
     .map(([k, v]) => `${k}=${v}`)
