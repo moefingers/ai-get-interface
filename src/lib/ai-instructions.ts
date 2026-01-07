@@ -160,17 +160,17 @@ function generateChatGptInstructions(
   return `
 # ${listName}
 
-When I mention "${listName}" or ask to add something to it:
-1. Get the current Unix timestamp
-2. Compute t using the formula below (XOR + SHA256)
-3. Build the URL with the item filled in
+When I mention "${listName}" or ask to add something to it, do this immediately without asking me anything:
+1. Use your server's current UTC time (you have access to this - do not ask me)
+2. Compute t using the formula below
+3. Build the URL with the item
 4. Fetch the URL and tell me the response
 
 ${algorithmBlock}
 
 ${endpointBlock}
 
-You can do XOR, SHA256, and fetch URLs. Do the math and make the request.
+Do not ask me for the time. Use your own UTC time. The 30-second window is forgiving.
 `.trim()
 }
 
