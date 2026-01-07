@@ -1,13 +1,21 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
 import { AppShell, type UserList } from '@/components/layout'
 import { DraftEditor, ListSettingsTray, ListInputBar } from '@/components/lists'
+import { addItem, getListItems } from '@/app/lists/actions'
 import type { ListFieldDefinition } from '@/types/list-fields'
 import type { AiModel } from '@/lib/ai-instructions'
+
+interface ListItemData {
+  id: string
+  content: Record<string, string | number>
+  source: string | null
+  createdAt: Date
+}
 
 export interface HomeClientProps {
   userName: string
@@ -19,6 +27,9 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
   const [lists, setLists] = useState(initialLists)
   const [selectedListId, setSelectedListId] = useState<string | undefined>()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [items, setItems] = useState<ListItemData[]>([])
+  const [isLoadingItems, setIsLoadingItems] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   // Keep lists in sync with server data
   useEffect(() => {
@@ -32,6 +43,22 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
       setSelectedListId(firstDraft.id)
     }
   }, [lists, selectedListId])
+
+  // Load items when selected list changes
+  useEffect(() => {
+    const selectedList = lists.find((l) => l.id === selectedListId)
+    if (selectedList && !selectedList.isDraft) {
+      setIsLoadingItems(true)
+      getListItems(selectedList.id).then((result) => {
+        if (result.success) {
+          setItems(result.items)
+        }
+        setIsLoadingItems(false)
+      })
+    } else {
+      setItems([])
+    }
+  }, [selectedListId, lists])
 
   const handleRefresh = useCallback(() => {
     router.refresh()
@@ -76,6 +103,42 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
     )
   }, [selectedListId])
 
+  const handleAddItem = useCallback(
+    (values: Record<string, string>) => {
+      if (!selectedListId) return
+
+      // Convert string values to proper types based on field definitions
+      const selectedList = lists.find((l) => l.id === selectedListId)
+      if (!selectedList) return
+
+      const fields = getFields(selectedList)
+      const content: Record<string, string | number> = {}
+
+      for (const [key, value] of Object.entries(values)) {
+        const field = fields.find((f) => f.name === key)
+        if (field?.type === 'number' && value !== '') {
+          content[key] = Number(value)
+        } else {
+          content[key] = value
+        }
+      }
+
+      startTransition(async () => {
+        const result = await addItem({
+          listId: selectedListId,
+          content,
+          source: 'manual',
+        })
+
+        if (result.success) {
+          // Prepend new item to list (newest first)
+          setItems((prev) => [result.item, ...prev])
+        }
+      })
+    },
+    [selectedListId, lists]
+  )
+
   const selectedList = lists.find((l) => l.id === selectedListId)
 
   // Parse fields from JSON for draft editor
@@ -108,7 +171,12 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
           onNameChanged={handleDraftNameChanged}
         />
       ) : selectedList ? (
-        <ListContent list={selectedList} />
+        <ListContent
+          list={selectedList}
+          items={items}
+          fields={getFields(selectedList)}
+          isLoading={isLoadingItems}
+        />
       ) : (
         <EmptyState
           hasLists={lists.filter((l) => !l.isDraft).length > 0}
@@ -132,10 +200,8 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
             fields={getFields(selectedList)}
             isSettingsOpen={isSettingsOpen}
             onToggleSettings={() => setIsSettingsOpen(!isSettingsOpen)}
-            onSubmit={(values) => {
-              // TODO: Submit item to list
-              console.log('Submit:', values)
-            }}
+            onSubmit={handleAddItem}
+            isSubmitting={isPending}
           />
         </div>
       )}
@@ -171,9 +237,15 @@ function EmptyState({ hasLists, userName, onRefresh }: EmptyStateProps) {
 
 interface ListContentProps {
   list: UserList
+  items: ListItemData[]
+  fields: ListFieldDefinition[]
+  isLoading: boolean
 }
 
-function ListContent({ list }: ListContentProps) {
+function ListContent({ list, items, fields, isLoading }: ListContentProps) {
+  // Sort fields by order for display
+  const sortedFields = [...fields].sort((a, b) => a.order - b.order)
+
   return (
     <div className="flex-1 flex flex-col p-8 overflow-y-auto">
       <div className="max-w-3xl mx-auto w-full">
@@ -181,10 +253,58 @@ function ListContent({ list }: ListContentProps) {
           {list.name}
         </h1>
 
-        {/* Items will be loaded here */}
-        <div className={cn('text-center py-12', tw.text.muted)}>
-          No items yet. Add items via your AI assistant or manually below.
-        </div>
+        {isLoading ? (
+          <div className={cn('text-center py-12', tw.text.muted)}>
+            Loading items...
+          </div>
+        ) : items.length === 0 ? (
+          <div className={cn('text-center py-12', tw.text.muted)}>
+            No items yet. Add items via your AI assistant or manually below.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className={cn(
+                  'p-4 rounded-lg',
+                  tw.bg.card,
+                  'border',
+                  tw.border.default
+                )}
+              >
+                {/* If fields defined, show structured content */}
+                {sortedFields.length > 0 ? (
+                  <div className="flex flex-wrap gap-4">
+                    {sortedFields.map((field) => (
+                      <div key={field.name} className="min-w-0">
+                        <span className={cn('text-xs', tw.text.muted)}>
+                          {field.label}
+                        </span>
+                        <div className={cn('font-medium', tw.text.primary)}>
+                          {item.content[field.name] ?? '—'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Fallback: show raw content */
+                  <pre className={cn('text-sm', tw.text.primary)}>
+                    {JSON.stringify(item.content, null, 2)}
+                  </pre>
+                )}
+
+                {/* Metadata */}
+                <div className={cn('mt-2 text-xs flex gap-3', tw.text.muted)}>
+                  <span>{item.source}</span>
+                  <span>
+                    {new Date(item.createdAt).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

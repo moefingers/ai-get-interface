@@ -467,3 +467,138 @@ export async function renameList(
 
   return { success: true, name: trimmedName }
 }
+
+// ============================================
+// ADD ITEM TO LIST
+// ============================================
+
+export interface AddItemInput {
+  listId: string
+  content: Record<string, string | number>
+  source?: string
+}
+
+export interface AddItemResult {
+  success: true
+  item: {
+    id: string
+    content: Record<string, string | number>
+    source: string | null
+    createdAt: Date
+  }
+}
+
+export interface AddItemError {
+  success: false
+  error: string
+}
+
+export type AddItemResponse = AddItemResult | AddItemError
+
+/**
+ * Adds an item to a list manually (from UI)
+ */
+export async function addItem(input: AddItemInput): Promise<AddItemResponse> {
+  const user = await syncUser()
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  // Verify ownership and list is published/active
+  const list = await prisma.list.findFirst({
+    where: { 
+      id: input.listId, 
+      userId: user.id,
+      isDraft: false,
+      isActive: true,
+    },
+  })
+
+  if (!list) {
+    return { success: false, error: 'List not found or not active' }
+  }
+
+  // Validate content against field schema
+  const fields = list.fields as unknown as ListFieldDefinition[]
+  for (const field of fields) {
+    const value = input.content[field.name]
+    if (field.required && (value === undefined || value === '')) {
+      return { success: false, error: `Missing required field: ${field.label}` }
+    }
+  }
+
+  // Create the item
+  const item = await prisma.listItem.create({
+    data: {
+      listId: input.listId,
+      content: input.content,
+      source: input.source || 'manual',
+    },
+  })
+
+  return {
+    success: true,
+    item: {
+      id: item.id,
+      content: item.content as Record<string, string | number>,
+      source: item.source,
+      createdAt: item.createdAt,
+    },
+  }
+}
+
+// ============================================
+// GET LIST ITEMS
+// ============================================
+
+export interface GetItemsResult {
+  success: true
+  items: Array<{
+    id: string
+    content: Record<string, string | number>
+    source: string | null
+    createdAt: Date
+  }>
+}
+
+export interface GetItemsError {
+  success: false
+  error: string
+}
+
+export type GetItemsResponse = GetItemsResult | GetItemsError
+
+/**
+ * Gets items for a list
+ */
+export async function getListItems(listId: string): Promise<GetItemsResponse> {
+  const user = await syncUser()
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  // Verify ownership
+  const list = await prisma.list.findFirst({
+    where: { id: listId, userId: user.id },
+  })
+
+  if (!list) {
+    return { success: false, error: 'List not found' }
+  }
+
+  const items = await prisma.listItem.findMany({
+    where: { listId },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  return {
+    success: true,
+    items: items.map((item) => ({
+      id: item.id,
+      content: item.content as Record<string, string | number>,
+      source: item.source,
+      createdAt: item.createdAt,
+    })),
+  }
+}
+

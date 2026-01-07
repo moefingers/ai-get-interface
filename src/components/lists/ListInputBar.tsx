@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { Settings } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
+import { NumberInput } from '@/components/ui'
 import type { ListFieldDefinition } from '@/types/list-fields'
 
 export interface ListInputBarProps {
@@ -12,6 +13,7 @@ export interface ListInputBarProps {
   isSettingsOpen: boolean
   onToggleSettings: () => void
   onSubmit: (values: Record<string, string>) => void
+  isSubmitting?: boolean
 }
 
 export function ListInputBar({
@@ -20,6 +22,7 @@ export function ListInputBar({
   isSettingsOpen,
   onToggleSettings,
   onSubmit,
+  isSubmitting = false,
 }: ListInputBarProps) {
   // Sort fields by order
   const sortedFields = [...fields].sort((a, b) => a.order - b.order)
@@ -97,23 +100,36 @@ export function ListInputBar({
 
           {/* Input field(s) */}
           {hasFields ? (
-            sortedFields.map((field, idx) => (
-              <input
-                key={field.name}
-                type={field.type === 'number' ? 'number' : 'text'}
-                placeholder={field.label + (field.required ? '' : ' (optional)')}
-                value={values[field.name] || ''}
-                onChange={(e) => handleChange(field.name, e.target.value)}
-                onKeyDown={handleKeyDown}
-                className={cn(
-                  'flex-1 min-w-0 bg-transparent border-none outline-none',
-                  tw.text.primary,
-                  tw.placeholder.default,
-                  // Add visual separator between fields
-                  idx > 0 && ['border-l pl-2', tw.border.muted]
-                )}
-              />
-            ))
+            sortedFields.map((field, idx) =>
+              field.type === 'number' ? (
+                <NumberInput
+                  key={field.name}
+                  value={values[field.name] || ''}
+                  onChange={(v) => handleChange(field.name, v)}
+                  placeholder={field.label + (field.required ? '' : ' (optional)')}
+                  onKeyDown={handleKeyDown}
+                  className={cn(
+                    'flex-1 min-w-0',
+                    idx > 0 && ['border-l pl-2', tw.border.muted]
+                  )}
+                />
+              ) : (
+                <input
+                  key={field.name}
+                  type="text"
+                  placeholder={field.label + (field.required ? '' : ' (optional)')}
+                  value={values[field.name] || ''}
+                  onChange={(e) => handleChange(field.name, e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className={cn(
+                    'flex-1 min-w-0 bg-transparent border-none outline-none',
+                    tw.text.primary,
+                    tw.placeholder.default,
+                    idx > 0 && ['border-l pl-2', tw.border.muted]
+                  )}
+                />
+              )
+            )
           ) : (
             <input
               type="text"
@@ -131,9 +147,14 @@ export function ListInputBar({
           <button
             type="button"
             onClick={handleSubmit}
-            className={cn(tw.btn.primary, 'px-4 py-2 shrink-0')}
+            disabled={isSubmitting}
+            className={cn(
+              tw.btn.primary,
+              'px-4 py-2 shrink-0',
+              isSubmitting && 'opacity-50 cursor-not-allowed'
+            )}
           >
-            Add
+            {isSubmitting ? 'Adding...' : 'Add'}
           </button>
         </div>
       </div>
