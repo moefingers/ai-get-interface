@@ -55,6 +55,15 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
     router.refresh()
   }, [router])
 
+  const handleDraftNameChanged = useCallback((newName: string) => {
+    // Update local state immediately for responsive UI
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id === selectedListId ? { ...l, name: newName } : l
+      )
+    )
+  }, [selectedListId])
+
   const selectedList = lists.find((l) => l.id === selectedListId)
 
   // Parse fields from JSON for draft editor
@@ -84,6 +93,7 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
           initialAiModel={selectedList.aiModel as AiModel | null}
           onPublished={handleDraftPublished}
           onDeleted={handleDraftDeleted}
+          onNameChanged={handleDraftNameChanged}
         />
       ) : selectedList ? (
         <ListContent list={selectedList} />

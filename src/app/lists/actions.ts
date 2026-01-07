@@ -132,6 +132,97 @@ export async function deleteDraft(listId: string): Promise<{ success: boolean; e
 }
 
 // ============================================
+// UPDATE DRAFT ACTIONS
+// ============================================
+
+export interface UpdateDraftInput {
+  listId: string
+  name?: string
+  aiModel?: AiModel
+  fields?: ListFieldDefinition[]
+}
+
+export interface UpdateDraftResult {
+  success: true
+  list: {
+    id: string
+    name: string
+    slug: string
+    aiModel: string | null
+    fields: ListFieldDefinition[]
+  }
+}
+
+export interface UpdateDraftError {
+  success: false
+  error: string
+}
+
+export type UpdateDraftResponse = UpdateDraftResult | UpdateDraftError
+
+/**
+ * Updates a draft list (auto-save)
+ */
+export async function updateDraft(input: UpdateDraftInput): Promise<UpdateDraftResponse> {
+  try {
+    const user = await syncUser()
+    if (!user) {
+      return { success: false, error: 'You must be signed in' }
+    }
+
+    // Verify ownership and draft status
+    const existing = await prisma.list.findFirst({
+      where: { id: input.listId, userId: user.id, isDraft: true },
+    })
+
+    if (!existing) {
+      return { success: false, error: 'Draft not found' }
+    }
+
+    // Build update data
+    const updateData: Record<string, unknown> = {}
+    
+    if (input.name !== undefined) {
+      updateData.name = input.name.trim() || 'New List'
+    }
+    
+    if (input.aiModel !== undefined) {
+      updateData.aiModel = input.aiModel
+    }
+    
+    if (input.fields !== undefined) {
+      // Ensure fields have proper order
+      const orderedFields = input.fields.map((f, i) => ({ ...f, order: i }))
+      updateData.fields = orderedFields
+    }
+
+    const list = await prisma.list.update({
+      where: { id: input.listId },
+      data: updateData,
+    })
+
+    // Parse fields back for response
+    const parsedFields = Array.isArray(list.fields) 
+      ? (list.fields as unknown as ListFieldDefinition[])
+      : []
+
+    return {
+      success: true,
+      list: {
+        id: list.id,
+        name: list.name,
+        slug: list.slug,
+        aiModel: list.aiModel,
+        fields: parsedFields,
+      },
+    }
+  } catch (error) {
+    console.error('Failed to update draft:', error)
+    return { success: false, error: 'Failed to save draft' }
+  }
+}
+
+// ============================================
 // PUBLISH ACTIONS
 // ============================================
 

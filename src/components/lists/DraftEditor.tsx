@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { Button, Input, Label, Select } from '@/components/ui'
+import { useState, useTransition, useEffect, useRef, useCallback } from 'react'
+import { Save } from 'lucide-react'
+import { Button, Input, Label, Select, ColumnHider } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
-import { publishList, deleteDraft, type PublishListResponse } from '@/app/lists/actions'
+import { publishList, deleteDraft, updateDraft, type PublishListResponse } from '@/app/lists/actions'
 import { 
   AI_MODELS, 
   generateAiInstructions, 
@@ -20,6 +21,7 @@ export interface DraftEditorProps {
   initialAiModel: AiModel | null
   onPublished: () => void
   onDeleted: () => void
+  onNameChanged?: (name: string) => void
 }
 
 const FIELD_TYPE_OPTIONS = [
@@ -27,7 +29,11 @@ const FIELD_TYPE_OPTIONS = [
   { value: 'number', label: 'Number' },
 ]
 
+const AUTOSAVE_DEBOUNCE_MS = 800
+
 type Step = 'edit' | 'success'
+// idle = no changes, pending = changes waiting for debounce, saving = request in flight, saved = success, error = failed
+type SaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error'
 
 export function DraftEditor({
   listId,
@@ -36,11 +42,13 @@ export function DraftEditor({
   initialAiModel,
   onPublished,
   onDeleted,
+  onNameChanged,
 }: DraftEditorProps) {
   const [isPending, startTransition] = useTransition()
   const [step, setStep] = useState<Step>('edit')
   const [error, setError] = useState<string | null>(null)
   const [publishedList, setPublishedList] = useState<PublishListResponse | null>(null)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
 
   const [name, setName] = useState(initialName === 'New List' ? '' : initialName)
   const [fields, setFields] = useState<ListFieldDefinition[]>(
@@ -49,6 +57,62 @@ export function DraftEditor({
       : [{ name: 'item', label: 'Item', type: 'text', required: true, order: 0 }]
   )
   const [aiModel, setAiModel] = useState<AiModel>(initialAiModel || 'chatgpt')
+
+  // Track if initial load to skip first auto-save
+  const isInitialMount = useRef(true)
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+
+  // Auto-save function
+  const saveChanges = useCallback(async () => {
+    setSaveStatus('saving')
+    const result = await updateDraft({
+      listId,
+      name,
+      aiModel,
+      fields,
+    })
+
+    if (result.success) {
+      setSaveStatus('saved')
+      // Notify parent of name change to update sidebar
+      if (result.list.name !== initialName) {
+        onNameChanged?.(result.list.name)
+      }
+      // Stay in 'saved' state to show green icon while synced
+    } else {
+      setSaveStatus('error')
+      setError(result.error)
+    }
+  }, [listId, name, aiModel, fields, initialName, onNameChanged])
+
+  // Debounced auto-save effect
+  useEffect(() => {
+    // Skip on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+
+    // Mark as pending (changes exist, waiting for debounce)
+    setSaveStatus('pending')
+
+    // Clear existing timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current)
+    }
+
+    // Set new debounce timer
+    debounceTimer.current = setTimeout(() => {
+      saveChanges()
+    }, AUTOSAVE_DEBOUNCE_MS)
+
+    // Cleanup on unmount or before next effect
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current)
+      }
+    }
+  }, [name, aiModel, fields, saveChanges])
 
   const addField = () => {
     setFields((prev) => [
@@ -126,13 +190,16 @@ export function DraftEditor({
     <div className="flex-1 flex flex-col p-8 overflow-y-auto">
       <div className="max-w-2xl mx-auto w-full space-y-8">
         {/* Header */}
-        <div>
-          <h1 className={cn('text-2xl font-bold mb-2', tw.text.primary)}>
-            Create New List
-          </h1>
-          <p className={cn('text-sm', tw.text.muted)}>
-            Configure your list, then publish to get AI instructions.
-          </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className={cn('text-2xl font-bold mb-2', tw.text.primary)}>
+              Create New List
+            </h1>
+            <p className={cn('text-sm', tw.text.muted)}>
+              Configure your list, then publish to get AI instructions.
+            </p>
+          </div>
+          <SaveStatusIndicator status={saveStatus} />
         </div>
 
         {/* Name Section */}
@@ -381,5 +448,37 @@ function CheckIcon({ className }: { className?: string }) {
     >
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
+  )
+}
+
+function SaveStatusIndicator({ status }: { status: SaveStatus }) {
+  const [isHovered, setIsHovered] = useState(false)
+
+  if (status === 'idle') return null
+
+  const labels: Record<Exclude<SaveStatus, 'idle'>, string> = {
+    pending: 'Unsaved',
+    saving: 'Saving...',
+    saved: 'Synced',
+    error: 'Failed',
+  }
+
+  return (
+    <div
+      className={cn(
+        'flex items-center px-2 py-1.5 rounded-full text-xs font-medium transition-all cursor-default',
+        status === 'pending' && 'text-red-500 bg-red-500/10',
+        status === 'saving' && 'text-yellow-500 bg-yellow-500/10',
+        status === 'saved' && 'text-green-500 bg-green-500/10',
+        status === 'error' && [tw.bg.errorMuted, tw.text.error]
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Save className={cn('w-4 h-4 shrink-0', status === 'saving' && 'animate-pulse')} />
+      <ColumnHider showWhen={isHovered}>
+        <span className="whitespace-nowrap">{labels[status]}</span>
+      </ColumnHider>
+    </div>
   )
 }
