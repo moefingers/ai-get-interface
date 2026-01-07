@@ -142,22 +142,20 @@ function generateGeminiInstructions(
   token: string
 ): string {
   return `
-# List: ${listName}
+# ${listName}
 
-When I mention "${listName}" or ask to add something to it, immediately fetch the URL to add it.
+When I mention "${listName}" or ask to add something to it, fetch the URL.
 
 ${algorithmBlock}
 
 ${endpointBlock}
 
-## What To Do
+## Instructions
 
 When I say "add eggs to ${listName}":
-1. Calculate t (see above) using: ${token}
-2. Fetch the GET URL with the fields filled in
-3. Tell me what the page says
-
-Just fetch the URL like you would read any webpage. Do it now.
+1. Get current time, do the math above to get t
+2. Build the URL with the item filled in
+3. Fetch it and tell me what it says
 `.trim()
 }
 
