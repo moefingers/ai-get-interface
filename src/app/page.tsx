@@ -20,18 +20,17 @@ export default async function HomePage() {
 
   const userName = user?.displayName || stackUser.displayName || 'User'
 
+  // If user has lists, redirect to the first one (drafts first, then published)
+  if (lists.length > 0) {
+    // Drafts are sorted first by getUserLists
+    redirect(`/lists/${lists[0].slug}`)
+  }
+
+  // No lists - show welcome/empty state
   return (
     <HomeClient
       userName={userName}
-      initialLists={lists.map((l) => ({
-        id: l.id,
-        name: l.name,
-        slug: l.slug,
-        aiModel: l.aiModel,
-        fields: JSON.stringify(l.fields),
-        isDraft: l.isDraft,
-        isActive: l.isActive,
-      }))}
+      initialLists={[]}
     />
   )
 }

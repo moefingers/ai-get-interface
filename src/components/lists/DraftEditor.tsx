@@ -19,7 +19,7 @@ export interface DraftEditorProps {
   initialName: string
   initialFields: ListFieldDefinition[]
   initialAiModel: AiModel | null
-  onPublished: () => void
+  onPublished: (slug: string) => void
   onDeleted: () => void
   onNameChanged?: (name: string) => void
 }
@@ -212,7 +212,7 @@ export function DraftEditor({
       if (result.success) {
         setPublishedList(result)
         setStep('success')
-        onPublished()
+        onPublished(result.list.slug)
       } else {
         setError(result.error)
       }
@@ -228,14 +228,8 @@ export function DraftEditor({
 
   const canPublish = name.trim().length > 0 && externalFields.every((f) => f.name && f.label)
 
-  if (step === 'success' && publishedList?.success) {
-    return (
-      <SuccessView
-        list={publishedList.list}
-        onDone={onPublished}
-      />
-    )
-  }
+  // Note: SuccessView is no longer shown because onPublished navigates immediately
+  // Keeping the component in case we want to use it in the future (e.g., modal)
 
   return (
     <div className="flex-1 flex flex-col p-8 overflow-y-auto">

@@ -413,6 +413,29 @@ export async function getListById(listId: string) {
   })
 }
 
+/**
+ * Gets a single list by slug (for URL-based routing)
+ */
+export async function getListBySlug(slug: string) {
+  const user = await syncUser()
+  if (!user) return null
+
+  return prisma.list.findFirst({
+    where: { slug, userId: user.id },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      aiModel: true,
+      fields: true,
+      isDraft: true,
+      isActive: true,
+      authToken: true,
+      createdAt: true,
+    },
+  })
+}
+
 // ============================================
 // RENAME LIST
 // ============================================
