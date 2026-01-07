@@ -94,20 +94,20 @@ When making requests, calculate the auth code as follows:
     .map((f) => `- ${f.name} (${f.required ? 'required' : 'optional'}): ${f.label} [${f.type}]`)
     .join('\n')
 
-  // Endpoint format
+  // Endpoint format - includes source param for tracking which AI sent the request
   const endpointBlock = `
 ## Endpoint
 
 To add an entry:
 \`\`\`
-GET ${domain}/api/list/${slug}/append?auth={auth_code}&${fieldParams}
+GET ${domain}/api/list/${slug}/append?auth={auth_code}&source=${model}&${fieldParams}
 \`\`\`
 
 ## Fields
 
 ${fieldDefs}
 
-All values must be URL-encoded.
+All values must be URL-encoded. The \`source\` parameter identifies which AI sent the request.
 `.trim()
 
   switch (model) {
