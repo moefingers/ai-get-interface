@@ -75,7 +75,7 @@ When I mention "pain log", do the following:
    - Message: the number from step 2
    - Output: lowercase hex string
 4. Make a GET request with field values as query params:
-   GET https://app.com/api/list/pain-log/append?auth={hmac}&level={1-10}&activity={text}&notes={optional}
+   GET https://app.com/go/pain-log/add?t={code}&level={1-10}&activity={text}&notes={optional}
 5. Confirm the entry was added
 
 Field definitions:
@@ -99,7 +99,7 @@ AI calculates (internally):
   - hmac: HMAC-SHA256("a1b2c3d4e5f6...", "57873333") = "b46b7ae..."
   ↓
 AI makes GET request:
-  GET https://app.com/api/list/pain-log/append?auth=b46b7ae...&level=7&activity=running&notes=sharp%20in%20my%20knee
+  GET https://app.com/go/pain-log/add?t=b46b7ae...&level=7&activity=running&notes=sharp%20in%20my%20knee
 ```
 
 ---
@@ -107,19 +107,19 @@ AI makes GET request:
 ## 4. Server Validates & Appends
 
 ```
-Request hits /api/list/[slug]/append
+Request hits /go/[slug]/add
   ↓
-Extract: slug="pain-log", auth="b46b7ae...", field params
+Extract: slug="pain-log", t="b46b7ae...", field params
   ↓
 Lookup list by slug → get listToken, fields schema, userId
   ↓
 Lookup user → get toleranceSeconds (default 30)
   ↓
-Validate auth code:
+Validate time code:
   - current_window = floor(now / 30)
   - Check windows: current, current-1, current+1 (based on tolerance)
   - For each window: compute HMAC-SHA256(listToken, window)
-  - If any match auth param → VALID
+  - If any match t param → VALID
   ↓
 Validate field data against schema:
   - Check required fields present
@@ -130,8 +130,8 @@ If valid:
   - Insert ListItem { content: { level: 7, activity: "running", notes: "..." }, source: "ai", listId }
   - Return 200: { success: true, data: { level: 7, ... } }
   ↓
-If invalid auth:
-  - Return 401: { error: "Invalid or expired auth code" }
+If invalid time code:
+  - Return 401: { error: "Invalid or expired time code" }
   ↓
 If invalid data:
   - Return 400: { error: "Missing required field: level" }
@@ -167,8 +167,8 @@ Displays (format based on field types):
 
 ## Future: Read Access
 
-Same auth pattern:
+Same pattern:
 ```
-GET /api/list/[slug]/read?auth={hmac}
+GET /go/[slug]/read?t={code}
 → Returns recent items for AI to read back to user
 ```

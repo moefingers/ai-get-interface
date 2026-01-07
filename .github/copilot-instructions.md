@@ -304,9 +304,9 @@ The terminal occasionally clips the first character of commands. If a command fa
 - Each list has a unique auth token
 - Lists have optional AI model association for instruction generation
 
-**GET API Format:**
+**GET URL Format:**
 ```
-GET /api/[listToken]/[timeAuth]/append?data1=value&data2=value
+GET /go/[slug]/add?t={timeCode}&source={ai}&field1=value1
 ```
 
 **Time-Based Auth:**
