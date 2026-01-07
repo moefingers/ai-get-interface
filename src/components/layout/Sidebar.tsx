@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
 import { ColumnHider } from '@/components/ui'
 import { createDraft } from '@/app/lists/actions'
 import { SidebarToggle } from './SidebarToggle'
 import { UserMenu } from './UserMenu'
+
+// Breakpoint for mobile (matches Tailwind's md)
+const MOBILE_BREAKPOINT = 768
 
 export interface UserList {
   id: string
@@ -32,7 +35,24 @@ export function Sidebar({
   onListCreated,
 }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
   const [isPending, startTransition] = useTransition()
+
+  // Detect mobile and auto-collapse sidebar
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < MOBILE_BREAKPOINT
+      setIsMobile(mobile)
+      // Auto-collapse on mobile
+      if (mobile) {
+        setIsOpen(false)
+      }
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const handleNewList = () => {
     startTransition(async () => {
@@ -40,8 +60,16 @@ export function Sidebar({
       if (result.success) {
         onListCreated?.(result.list.id)
         onSelectList?.(result.list.id)
+        // Close sidebar on mobile after creating
+        if (isMobile) setIsOpen(false)
       }
     })
+  }
+
+  const handleSelectList = (listId: string) => {
+    onSelectList?.(listId)
+    // Close sidebar on mobile after selecting
+    if (isMobile) setIsOpen(false)
   }
 
   // Separate drafts and published lists
@@ -49,9 +77,21 @@ export function Sidebar({
   const published = lists.filter((l) => !l.isDraft)
 
   return (
-    <div className="flex relative">
+    <div className={cn(
+      'flex',
+      // On mobile, position fixed to overlay content
+      isMobile ? 'fixed inset-y-0 left-0 z-40' : 'relative'
+    )}>
+      {/* Backdrop for mobile when sidebar is open */}
+      {isMobile && isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+      
       {/* Sidebar with ColumnHider for smooth collapse */}
-      <ColumnHider showWhen={isOpen} className="h-screen">
+      <ColumnHider showWhen={isOpen} className={cn('h-screen', isMobile && 'z-40')}>
         <aside
           className={cn(
             'h-full w-65 flex flex-col',
@@ -99,7 +139,7 @@ export function Sidebar({
                     {drafts.map((list) => (
                       <button
                         key={list.id}
-                        onClick={() => onSelectList?.(list.id)}
+                        onClick={() => handleSelectList(list.id)}
                         className={cn(
                           'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors',
                           'border border-dashed',
@@ -122,7 +162,7 @@ export function Sidebar({
                 {published.map((list) => (
                   <button
                     key={list.id}
-                    onClick={() => onSelectList?.(list.id)}
+                    onClick={() => handleSelectList(list.id)}
                     className={cn(
                       'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors',
                       selectedListId === list.id
@@ -150,9 +190,14 @@ export function Sidebar({
         </aside>
       </ColumnHider>
 
-      {/* Toggle button - in document flow, slides with sidebar */}
-      <div className="h-screen shrink-0">
-        <div className="sticky top-3 ml-3">
+      {/* Toggle button - in document flow on desktop, fixed on mobile */}
+      <div className={cn(
+        'shrink-0',
+        isMobile 
+          ? 'fixed top-3 left-3 z-50' 
+          : 'h-screen'
+      )}>
+        <div className={cn(!isMobile && 'sticky top-3 ml-3')}>
           <SidebarToggle isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)} />
         </div>
       </div>
