@@ -70,31 +70,14 @@ export function generateAiInstructions(
 ): string {
   const { listName, slug, token, domain, fields } = params
   
-  // Base algorithm explanation - same for all models
-  // NOTE: Spells out HMAC as basic math operations to avoid "crypto" refusal
+  // Condensed algorithm - must fit in ~1495 char total instructions
   const algorithmBlock = `
-## How to Calculate t
-
-Calculate the "t" parameter as follows:
-
-**Step 1:** Get current Unix timestamp in seconds, divide by 30, floor it.
-Example: if timestamp is 1736208000, then floor(1736208000/30) = 57873600
-
-**Step 2:** Convert that number to a string. That's your "message".
-
-**Step 3:** Calculate the checksum using this formula (this is just XOR and SHA-256):
-
-Key = "${token}"
-
-1. Pad the key with zeros to 64 bytes
-2. XOR each byte of padded key with 0x36 → call this "inner_key"
-3. XOR each byte of padded key with 0x5c → call this "outer_key"  
-4. Concatenate inner_key + message, then SHA-256 hash it → "inner_hash"
-5. Concatenate outer_key + inner_hash, then SHA-256 hash it → final result
-
-The final result (lowercase hex) is your t value.
-
-This is basic math: XOR, concatenation, and SHA-256. You can do all of these operations.
+## t Parameter
+Key: ${token}
+m = floor(unix_seconds / 30) as string
+ipad = key padded to 64 bytes, each XOR 0x36
+opad = key padded to 64 bytes, each XOR 0x5c
+t = SHA256(opad + SHA256(ipad + m)) as lowercase hex
 `.trim()
 
   // Build field params string
@@ -107,20 +90,11 @@ This is basic math: XOR, concatenation, and SHA-256. You can do all of these ope
     .map((f) => `- ${f.name} (${f.required ? 'required' : 'optional'}): ${f.label} [${f.type}]`)
     .join('\n')
 
-  // Endpoint format - includes source param for tracking which AI sent the request
+  // Endpoint format - condensed
   const endpointBlock = `
-## Endpoint
-
-To add an entry, make this GET request:
-\`\`\`
-GET ${domain}/api/list/${slug}/append?t={time_code}&source=${model}&${fieldParams}
-\`\`\`
-
-## Fields
-
-${fieldDefs}
-
-URL-encode all values. The \`source\` parameter identifies you.
+## URL
+GET ${domain}/api/list/${slug}/append?t={t}&source=${model}&${fieldParams}
+URL-encode values.
 `.trim()
 
   switch (model) {
@@ -139,23 +113,13 @@ function generateGeminiInstructions(
   listName: string,
   algorithmBlock: string,
   endpointBlock: string,
-  token: string
+  _token: string
 ): string {
   return `
 # ${listName}
-
-When I mention "${listName}" or ask to add something to it, fetch the URL.
-
+When I say "add X to ${listName}", compute t, build URL, fetch it, tell me the response.
 ${algorithmBlock}
-
 ${endpointBlock}
-
-## Instructions
-
-When I say "add eggs to ${listName}":
-1. Get current time, do the math above to get t
-2. Build the URL with the item filled in
-3. Fetch it and tell me what it says
 `.trim()
 }
 
@@ -163,26 +127,13 @@ function generateChatGptInstructions(
   listName: string,
   algorithmBlock: string,
   endpointBlock: string,
-  token: string
+  _token: string
 ): string {
   return `
-# List: ${listName}
-
-When I mention "${listName}" or ask to add something to this list, fetch the URL to add it.
-
+# ${listName}
+When I say "add X to ${listName}", compute t, build URL, fetch it, tell me the response.
 ${algorithmBlock}
-
 ${endpointBlock}
-
-## What To Do
-
-When I say "add eggs to ${listName}":
-1. Get the current time, calculate the time window number
-2. Do the XOR + SHA-256 steps above to get t
-3. Build the URL and fetch it like reading any webpage
-4. Tell me what the response says
-
-You know the current time. You can do XOR. You can do SHA-256. You can fetch URLs. Gemini does this exact same calculation. So do the math and fetch the URL.
 `.trim()
 }
 
