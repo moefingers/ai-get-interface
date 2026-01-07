@@ -1,7 +1,7 @@
 'use client'
 
 import { StackProvider, StackTheme } from '@stackframe/stack'
-import { stackServerApp } from '@/lib/stack'
+import { stackClientApp } from '@/stack/client'
 
 export interface AppStackProviderProps {
   children: React.ReactNode
@@ -9,7 +9,7 @@ export interface AppStackProviderProps {
 
 export function AppStackProvider({ children }: AppStackProviderProps) {
   return (
-    <StackProvider app={stackServerApp}>
+    <StackProvider app={stackClientApp}>
       <StackTheme>
         {children}
       </StackTheme>

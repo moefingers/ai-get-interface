@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import { stackServerApp } from '@/lib/stack'
+import { stackServerApp } from '@/stack/server'
 import { randomBytes } from 'crypto'
 
 /**

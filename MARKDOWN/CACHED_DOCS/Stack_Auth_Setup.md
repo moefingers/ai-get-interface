@@ -1,6 +1,6 @@
-# Stack Auth (Neon Auth) Setup Guide
+# Stack Auth Setup Guide
 
-**Source:** https://stack-auth.com/docs
+**Source:** https://docs.stack-auth.com/docs/getting-started/setup
 **Cached:** January 6, 2026
 **Last Verified:** January 6, 2026
 
@@ -8,20 +8,28 @@
 
 ## 📦 OVERVIEW
 
-Stack Auth is the authentication layer provided by Neon. It integrates with Neon PostgreSQL for user management.
+Stack Auth is an open-source authentication library. It provides pre-built UI components and handles sessions, OAuth, and password auth.
 
-### Environment Variables (from Neon)
+### Environment Variables
 
 ```bash
-# Already in .env
-NEXT_PUBLIC_STACK_PROJECT_ID=...
-NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=...
-STACK_SECRET_SERVER_KEY=...
+# Required in .env.local
+NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
+NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=<your-publishable-client-key>
+STACK_SECRET_SERVER_KEY=<your-secret-server-key>
 ```
 
 ---
 
 ## 🔧 INSTALLATION
+
+### Option 1: Setup Wizard (Recommended)
+
+```bash
+npx @stackframe/init-stack@latest
+```
+
+### Option 2: Manual Installation
 
 ```bash
 pnpm add @stackframe/stack
@@ -29,27 +37,62 @@ pnpm add @stackframe/stack
 
 ---
 
-## 🏗️ SETUP
+## 🏗️ MANUAL SETUP (Next.js App Router)
 
-### 1. Create Stack Handler
+### 1. Create Server App (`src/stack/server.ts`)
 
 ```typescript
-// src/lib/stack.ts
-import { StackServerApp } from '@stackframe/stack'
+import "server-only";
+import { StackServerApp } from "@stackframe/stack";
 
 export const stackServerApp = new StackServerApp({
-  tokenStore: 'nextjs-cookie',
-})
+  tokenStore: "nextjs-cookie",
+  urls: {
+    home: "/",
+  },
+});
 ```
 
-### 2. Create Stack Provider
+**CRITICAL:** The `"server-only"` import ensures this file is never imported on the client.
+
+### 2. Create Client App (`src/stack/client.ts`)
 
 ```typescript
-// src/components/providers/StackProvider.tsx
-'use client'
+"use client";
+import { StackClientApp } from "@stackframe/stack";
 
-import { StackProvider, StackTheme } from '@stackframe/stack'
-import { stackServerApp } from '@/lib/stack'
+export const stackClientApp = new StackClientApp({
+  tokenStore: "nextjs-cookie",
+  urls: {
+    home: "/",
+  },
+});
+```
+
+### 3. Create Stack Handler (`src/app/handler/[...stack]/page.tsx`)
+
+```typescript
+import { StackHandler } from "@stackframe/stack";
+import { stackServerApp } from "@/stack/server";
+
+export default function Handler(props: { params: any; searchParams: any }) {
+  return (
+    <StackHandler
+      app={stackServerApp}
+      routeProps={props}
+      fullPage={true}
+    />
+  );
+}
+```
+
+### 4. Create StackProvider (`src/components/providers/StackProvider.tsx`)
+
+```typescript
+"use client";
+
+import { StackProvider, StackTheme } from "@stackframe/stack";
+import { stackServerApp } from "@/stack/server";
 
 export function AppStackProvider({ children }: { children: React.ReactNode }) {
   return (
@@ -58,26 +101,55 @@ export function AppStackProvider({ children }: { children: React.ReactNode }) {
         {children}
       </StackTheme>
     </StackProvider>
-  )
+  );
 }
 ```
 
-### 3. Wrap App in Provider
+### 5. Wrap Layout (`src/app/layout.tsx`)
 
 ```typescript
-// app/layout.tsx
-import { AppStackProvider } from '@/components/providers/StackProvider'
+import { AppStackProvider } from "@/components/providers/StackProvider";
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html>
+    <html lang="en">
       <body>
         <AppStackProvider>
           {children}
         </AppStackProvider>
       </body>
     </html>
-  )
+  );
+}
+```
+
+### 6. Create Loading Boundary (`src/app/loading.tsx`)
+
+```typescript
+export default function Loading() {
+  return null; // Or a spinner/skeleton
+}
+```
+
+---
+
+## 📄 AUTH PAGES
+
+The `StackHandler` handles these routes automatically:
+- `/handler/sign-in` - Sign in page
+- `/handler/sign-up` - Sign up page  
+- `/handler/sign-out` - Sign out
+- `/handler/forgot-password` - Password reset
+- `/handler/account-settings` - User settings
+
+Or use standalone components:
+
+```typescript
+// app/auth/sign-in/page.tsx
+import { SignIn } from "@stackframe/stack";
+
+export default function SignInPage() {
+  return <SignIn />;
 }
 ```
 
@@ -88,33 +160,33 @@ export default function RootLayout({ children }) {
 ### Server Components
 
 ```typescript
-// In Server Component
-import { stackServerApp } from '@/lib/stack'
+import { stackServerApp } from "@/stack/server";
 
 export default async function Page() {
-  const user = await stackServerApp.getUser()
+  const user = await stackServerApp.getUser();
   
   if (!user) {
-    redirect('/auth/sign-in')
+    // User not signed in
+    redirect("/handler/sign-in");
   }
   
-  return <div>Welcome, {user.displayName}</div>
+  return <div>Welcome, {user.displayName}</div>;
 }
 ```
 
 ### Client Components
 
 ```typescript
-'use client'
+"use client";
 
-import { useUser, useStackApp } from '@stackframe/stack'
+import { useUser, useStackApp } from "@stackframe/stack";
 
 export function UserProfile() {
-  const user = useUser()
-  const app = useStackApp()
+  const user = useUser();
+  const app = useStackApp();
   
   if (!user) {
-    return <button onClick={() => app.redirectToSignIn()}>Sign In</button>
+    return <button onClick={() => app.redirectToSignIn()}>Sign In</button>;
   }
   
   return (
@@ -122,129 +194,71 @@ export function UserProfile() {
       <p>Email: {user.primaryEmail}</p>
       <button onClick={() => app.signOut()}>Sign Out</button>
     </div>
-  )
+  );
 }
 ```
 
-### Protected Routes
+### Protected Page Pattern
 
 ```typescript
-// app/(protected)/layout.tsx
-import { stackServerApp } from '@/lib/stack'
-import { redirect } from 'next/navigation'
+import { stackServerApp } from "@/stack/server";
+import { redirect } from "next/navigation";
 
-export default async function ProtectedLayout({ children }) {
-  const user = await stackServerApp.getUser()
-  
-  if (!user) {
-    redirect('/auth/sign-in')
-  }
-  
-  return children
+export default async function ProtectedPage() {
+  const user = await stackServerApp.getUser({ or: "redirect" });
+  // User is guaranteed to exist here
+  return <div>Protected content for {user.displayName}</div>;
 }
 ```
 
 ---
 
-## 📄 AUTH PAGES
+## 📁 EXPECTED FILE STRUCTURE
 
-### Sign In Page
+After setup, you should have:
 
-```typescript
-// app/auth/sign-in/page.tsx
-import { SignIn } from '@stackframe/stack'
-
-export default function SignInPage() {
-  return <SignIn />
-}
 ```
-
-### Sign Up Page
-
-```typescript
-// app/auth/sign-up/page.tsx
-import { SignUp } from '@stackframe/stack'
-
-export default function SignUpPage() {
-  return <SignUp />
-}
-```
-
-### Account Settings
-
-```typescript
-// app/settings/page.tsx
-import { AccountSettings } from '@stackframe/stack'
-
-export default function SettingsPage() {
-  return <AccountSettings />
-}
+src/
+├── stack/
+│   ├── server.ts    # StackServerApp instance
+│   └── client.ts    # StackClientApp instance (optional)
+├── app/
+│   ├── layout.tsx   # Wrapped with StackProvider
+│   ├── loading.tsx  # Suspense boundary
+│   └── handler/
+│       └── [...stack]/
+│           └── page.tsx  # StackHandler
+└── components/
+    └── providers/
+        └── StackProvider.tsx
 ```
 
 ---
 
-## 🗄️ DATABASE INTEGRATION
+## ⚠️ COMMON ISSUES
 
-Stack Auth can sync user data with your Prisma database using webhooks or on-demand fetching.
+### "No secret server key provided"
 
-### Sync User on Login
+1. Ensure `.env.local` contains `STACK_SECRET_SERVER_KEY`
+2. Restart dev server after adding env vars
+3. Clear `.next` cache: `rm -rf .next`
 
-```typescript
-// src/lib/sync-user.ts
-import { prisma } from '@/lib/db'
-import { stackServerApp } from '@/lib/stack'
+### Environment Variables Not Loading
 
-export async function syncUser() {
-  const stackUser = await stackServerApp.getUser()
-  
-  if (!stackUser) return null
-  
-  const user = await prisma.user.upsert({
-    where: { stackId: stackUser.id },
-    update: {
-      email: stackUser.primaryEmail,
-      displayName: stackUser.displayName,
-    },
-    create: {
-      stackId: stackUser.id,
-      email: stackUser.primaryEmail!,
-      displayName: stackUser.displayName,
-      algorithmSeed: crypto.randomUUID(),  // Generate unique seed for auth
-      toleranceSeconds: 60,
-    },
-  })
-  
-  return user
-}
-```
-
-### Prisma Schema Addition
-
-```prisma
-model User {
-  id              String   @id @default(cuid())
-  stackId         String   @unique @map("stack_id")
-  email           String   @unique
-  displayName     String?  @map("display_name")
-  algorithmSeed   String   @map("algorithm_seed")
-  toleranceSeconds Int     @default(60) @map("tolerance_seconds")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-  
-  lists           List[]
-  
-  @@map("users")
-}
-```
+- Next.js only loads `.env.local` automatically
+- Non-public vars (no `NEXT_PUBLIC_` prefix) are server-only
+- Restart required after env changes
 
 ---
 
-## ⚠️ NOTES
+## 🔗 REFERENCE
 
-- Stack Auth handles password hashing, sessions, and OAuth
-- User metadata stored in Stack's database, sync to Prisma as needed
-- Environment variables from Neon console are already configured
+- Setup Guide: https://docs.stack-auth.com/docs/getting-started/setup
+- SDK Reference: https://docs.stack-auth.com/docs/sdk
+- Components: https://docs.stack-auth.com/docs/components
+- StackHandler: https://docs.stack-auth.com/docs/components/stack-handler
+- StackProvider: https://docs.stack-auth.com/docs/components/stack-provider
 
 ---
 
-*This documentation applies to Stack Auth with Neon PostgreSQL*
+*This documentation applies to Stack Auth with Next.js App Router*

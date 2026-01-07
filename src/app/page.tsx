@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { stackServerApp } from '@/lib/stack'
+import { stackServerApp } from '@/stack/server'
 import { syncUser } from '@/lib/sync-user'
 import { tw } from '@/lib/tw-theme'
 import { cn } from '@/lib/cn'
