@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { Modal, Button, Input, Label, Select } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
-import { createList, type CreateListResponse } from '@/app/lists/actions'
+import { createDraft, publishList, type PublishListResponse } from '@/app/lists/actions'
 import { 
   AI_MODELS, 
   generateAiInstructions, 
@@ -25,6 +25,7 @@ interface FormState {
   name: string
   fields: ListFieldDefinition[]
   aiModel: AiModel
+  draftId: string | null  // Track draft created internally
 }
 
 const FIELD_TYPE_OPTIONS = [
@@ -36,12 +37,13 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
   const [step, setStep] = useState<Step>('name')
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const [createdList, setCreatedList] = useState<CreateListResponse | null>(null)
+  const [createdList, setCreatedList] = useState<PublishListResponse | null>(null)
   
   const [form, setForm] = useState<FormState>({
     name: '',
     fields: [{ name: 'item', label: 'Item', type: 'text', required: true, order: 0 }],
     aiModel: 'chatgpt',
+    draftId: null,
   })
 
   const resetForm = () => {
@@ -52,6 +54,7 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
       name: '',
       fields: [{ name: 'item', label: 'Item', type: 'text', required: true, order: 0 }],
       aiModel: 'chatgpt',
+      draftId: null,
     })
   }
 
@@ -64,7 +67,21 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
   const handleSubmit = () => {
     setError(null)
     startTransition(async () => {
-      const result = await createList({
+      // Create draft first if not already created
+      let draftId = form.draftId
+      if (!draftId) {
+        const draftResult = await createDraft()
+        if (!draftResult.success) {
+          setError(draftResult.error)
+          return
+        }
+        draftId = draftResult.list.id
+        setForm((prev) => ({ ...prev, draftId }))
+      }
+
+      // Publish the draft
+      const result = await publishList({
+        listId: draftId,
         name: form.name,
         aiModel: form.aiModel,
         fields: form.fields,

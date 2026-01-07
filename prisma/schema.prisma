@@ -65,6 +65,10 @@ model List {
   /// e.g., "gemini", "chatgpt", "google-assistant"
   aiModel     String?  @map("ai_model")
   
+  /// Whether the list is still being configured (draft mode)
+  /// Drafts don't receive API requests and show edit UI
+  isDraft     Boolean  @default(false) @map("is_draft")
+  
   /// Whether the list is active (can receive new items)
   isActive    Boolean  @default(true) @map("is_active")
   

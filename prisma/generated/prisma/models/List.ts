@@ -30,6 +30,7 @@ export type ListMinAggregateOutputType = {
   slug: string | null
   authToken: string | null
   aiModel: string | null
+  isDraft: boolean | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -42,6 +43,7 @@ export type ListMaxAggregateOutputType = {
   slug: string | null
   authToken: string | null
   aiModel: string | null
+  isDraft: boolean | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -55,6 +57,7 @@ export type ListCountAggregateOutputType = {
   authToken: number
   fields: number
   aiModel: number
+  isDraft: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -69,6 +72,7 @@ export type ListMinAggregateInputType = {
   slug?: true
   authToken?: true
   aiModel?: true
+  isDraft?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -81,6 +85,7 @@ export type ListMaxAggregateInputType = {
   slug?: true
   authToken?: true
   aiModel?: true
+  isDraft?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -94,6 +99,7 @@ export type ListCountAggregateInputType = {
   authToken?: true
   fields?: true
   aiModel?: true
+  isDraft?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -180,6 +186,7 @@ export type ListGroupByOutputType = {
   authToken: string
   fields: runtime.JsonValue
   aiModel: string | null
+  isDraft: boolean
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -214,6 +221,7 @@ export type ListWhereInput = {
   authToken?: Prisma.StringFilter<"List"> | string
   fields?: Prisma.JsonFilter<"List">
   aiModel?: Prisma.StringNullableFilter<"List"> | string | null
+  isDraft?: Prisma.BoolFilter<"List"> | boolean
   isActive?: Prisma.BoolFilter<"List"> | boolean
   createdAt?: Prisma.DateTimeFilter<"List"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"List"> | Date | string
@@ -229,6 +237,7 @@ export type ListOrderByWithRelationInput = {
   authToken?: Prisma.SortOrder
   fields?: Prisma.SortOrder
   aiModel?: Prisma.SortOrderInput | Prisma.SortOrder
+  isDraft?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -248,6 +257,7 @@ export type ListWhereUniqueInput = Prisma.AtLeast<{
   slug?: Prisma.StringFilter<"List"> | string
   fields?: Prisma.JsonFilter<"List">
   aiModel?: Prisma.StringNullableFilter<"List"> | string | null
+  isDraft?: Prisma.BoolFilter<"List"> | boolean
   isActive?: Prisma.BoolFilter<"List"> | boolean
   createdAt?: Prisma.DateTimeFilter<"List"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"List"> | Date | string
@@ -263,6 +273,7 @@ export type ListOrderByWithAggregationInput = {
   authToken?: Prisma.SortOrder
   fields?: Prisma.SortOrder
   aiModel?: Prisma.SortOrderInput | Prisma.SortOrder
+  isDraft?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -282,6 +293,7 @@ export type ListScalarWhereWithAggregatesInput = {
   authToken?: Prisma.StringWithAggregatesFilter<"List"> | string
   fields?: Prisma.JsonWithAggregatesFilter<"List">
   aiModel?: Prisma.StringNullableWithAggregatesFilter<"List"> | string | null
+  isDraft?: Prisma.BoolWithAggregatesFilter<"List"> | boolean
   isActive?: Prisma.BoolWithAggregatesFilter<"List"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"List"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"List"> | Date | string
@@ -295,6 +307,7 @@ export type ListCreateInput = {
   authToken: string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -309,6 +322,7 @@ export type ListUncheckedCreateInput = {
   authToken: string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -323,6 +337,7 @@ export type ListUpdateInput = {
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -337,6 +352,7 @@ export type ListUncheckedUpdateInput = {
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -351,6 +367,7 @@ export type ListCreateManyInput = {
   authToken: string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -364,6 +381,7 @@ export type ListUpdateManyMutationInput = {
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -376,6 +394,7 @@ export type ListUncheckedUpdateManyInput = {
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -404,6 +423,7 @@ export type ListCountOrderByAggregateInput = {
   authToken?: Prisma.SortOrder
   fields?: Prisma.SortOrder
   aiModel?: Prisma.SortOrder
+  isDraft?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -416,6 +436,7 @@ export type ListMaxOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   authToken?: Prisma.SortOrder
   aiModel?: Prisma.SortOrder
+  isDraft?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -428,6 +449,7 @@ export type ListMinOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   authToken?: Prisma.SortOrder
   aiModel?: Prisma.SortOrder
+  isDraft?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -506,6 +528,7 @@ export type ListCreateWithoutUserInput = {
   authToken: string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -519,6 +542,7 @@ export type ListUncheckedCreateWithoutUserInput = {
   authToken: string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -561,6 +585,7 @@ export type ListScalarWhereInput = {
   authToken?: Prisma.StringFilter<"List"> | string
   fields?: Prisma.JsonFilter<"List">
   aiModel?: Prisma.StringNullableFilter<"List"> | string | null
+  isDraft?: Prisma.BoolFilter<"List"> | boolean
   isActive?: Prisma.BoolFilter<"List"> | boolean
   createdAt?: Prisma.DateTimeFilter<"List"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"List"> | Date | string
@@ -574,6 +599,7 @@ export type ListCreateWithoutItemsInput = {
   authToken: string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -587,6 +613,7 @@ export type ListUncheckedCreateWithoutItemsInput = {
   authToken: string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -616,6 +643,7 @@ export type ListUpdateWithoutItemsInput = {
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -629,6 +657,7 @@ export type ListUncheckedUpdateWithoutItemsInput = {
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -642,6 +671,7 @@ export type ListCreateManyUserInput = {
   authToken: string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -654,6 +684,7 @@ export type ListUpdateWithoutUserInput = {
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -667,6 +698,7 @@ export type ListUncheckedUpdateWithoutUserInput = {
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -680,6 +712,7 @@ export type ListUncheckedUpdateManyWithoutUserInput = {
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
   fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -723,6 +756,7 @@ export type ListSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   authToken?: boolean
   fields?: boolean
   aiModel?: boolean
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -739,6 +773,7 @@ export type ListSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   authToken?: boolean
   fields?: boolean
   aiModel?: boolean
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -753,6 +788,7 @@ export type ListSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   authToken?: boolean
   fields?: boolean
   aiModel?: boolean
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -767,13 +803,14 @@ export type ListSelectScalar = {
   authToken?: boolean
   fields?: boolean
   aiModel?: boolean
+  isDraft?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   userId?: boolean
 }
 
-export type ListOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "authToken" | "fields" | "aiModel" | "isActive" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["list"]>
+export type ListOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "authToken" | "fields" | "aiModel" | "isDraft" | "isActive" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["list"]>
 export type ListInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   items?: boolean | Prisma.List$itemsArgs<ExtArgs>
@@ -818,6 +855,11 @@ export type $ListPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * e.g., "gemini", "chatgpt", "google-assistant"
      */
     aiModel: string | null
+    /**
+     * Whether the list is still being configured (draft mode)
+     * Drafts don't receive API requests and show edit UI
+     */
+    isDraft: boolean
     /**
      * Whether the list is active (can receive new items)
      */
@@ -1256,6 +1298,7 @@ export interface ListFieldRefs {
   readonly authToken: Prisma.FieldRef<"List", 'String'>
   readonly fields: Prisma.FieldRef<"List", 'Json'>
   readonly aiModel: Prisma.FieldRef<"List", 'String'>
+  readonly isDraft: Prisma.FieldRef<"List", 'Boolean'>
   readonly isActive: Prisma.FieldRef<"List", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"List", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"List", 'DateTime'>
