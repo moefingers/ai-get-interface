@@ -53,6 +53,7 @@ export type ListCountAggregateOutputType = {
   name: number
   slug: number
   authToken: number
+  fields: number
   aiModel: number
   isActive: number
   createdAt: number
@@ -91,6 +92,7 @@ export type ListCountAggregateInputType = {
   name?: true
   slug?: true
   authToken?: true
+  fields?: true
   aiModel?: true
   isActive?: true
   createdAt?: true
@@ -176,6 +178,7 @@ export type ListGroupByOutputType = {
   name: string
   slug: string
   authToken: string
+  fields: runtime.JsonValue
   aiModel: string | null
   isActive: boolean
   createdAt: Date
@@ -209,6 +212,7 @@ export type ListWhereInput = {
   name?: Prisma.StringFilter<"List"> | string
   slug?: Prisma.StringFilter<"List"> | string
   authToken?: Prisma.StringFilter<"List"> | string
+  fields?: Prisma.JsonFilter<"List">
   aiModel?: Prisma.StringNullableFilter<"List"> | string | null
   isActive?: Prisma.BoolFilter<"List"> | boolean
   createdAt?: Prisma.DateTimeFilter<"List"> | Date | string
@@ -223,6 +227,7 @@ export type ListOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   authToken?: Prisma.SortOrder
+  fields?: Prisma.SortOrder
   aiModel?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -241,6 +246,7 @@ export type ListWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ListWhereInput | Prisma.ListWhereInput[]
   name?: Prisma.StringFilter<"List"> | string
   slug?: Prisma.StringFilter<"List"> | string
+  fields?: Prisma.JsonFilter<"List">
   aiModel?: Prisma.StringNullableFilter<"List"> | string | null
   isActive?: Prisma.BoolFilter<"List"> | boolean
   createdAt?: Prisma.DateTimeFilter<"List"> | Date | string
@@ -255,6 +261,7 @@ export type ListOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   authToken?: Prisma.SortOrder
+  fields?: Prisma.SortOrder
   aiModel?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -273,6 +280,7 @@ export type ListScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"List"> | string
   slug?: Prisma.StringWithAggregatesFilter<"List"> | string
   authToken?: Prisma.StringWithAggregatesFilter<"List"> | string
+  fields?: Prisma.JsonWithAggregatesFilter<"List">
   aiModel?: Prisma.StringNullableWithAggregatesFilter<"List"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"List"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"List"> | Date | string
@@ -285,6 +293,7 @@ export type ListCreateInput = {
   name: string
   slug: string
   authToken: string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -298,6 +307,7 @@ export type ListUncheckedCreateInput = {
   name: string
   slug: string
   authToken: string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -311,6 +321,7 @@ export type ListUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -324,6 +335,7 @@ export type ListUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -337,6 +349,7 @@ export type ListCreateManyInput = {
   name: string
   slug: string
   authToken: string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -349,6 +362,7 @@ export type ListUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -360,6 +374,7 @@ export type ListUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -387,6 +402,7 @@ export type ListCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   authToken?: Prisma.SortOrder
+  fields?: Prisma.SortOrder
   aiModel?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -488,6 +504,7 @@ export type ListCreateWithoutUserInput = {
   name: string
   slug: string
   authToken: string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -500,6 +517,7 @@ export type ListUncheckedCreateWithoutUserInput = {
   name: string
   slug: string
   authToken: string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -541,6 +559,7 @@ export type ListScalarWhereInput = {
   name?: Prisma.StringFilter<"List"> | string
   slug?: Prisma.StringFilter<"List"> | string
   authToken?: Prisma.StringFilter<"List"> | string
+  fields?: Prisma.JsonFilter<"List">
   aiModel?: Prisma.StringNullableFilter<"List"> | string | null
   isActive?: Prisma.BoolFilter<"List"> | boolean
   createdAt?: Prisma.DateTimeFilter<"List"> | Date | string
@@ -553,6 +572,7 @@ export type ListCreateWithoutItemsInput = {
   name: string
   slug: string
   authToken: string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -565,6 +585,7 @@ export type ListUncheckedCreateWithoutItemsInput = {
   name: string
   slug: string
   authToken: string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -593,6 +614,7 @@ export type ListUpdateWithoutItemsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -605,6 +627,7 @@ export type ListUncheckedUpdateWithoutItemsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -617,6 +640,7 @@ export type ListCreateManyUserInput = {
   name: string
   slug: string
   authToken: string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -628,6 +652,7 @@ export type ListUpdateWithoutUserInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -640,6 +665,7 @@ export type ListUncheckedUpdateWithoutUserInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -652,6 +678,7 @@ export type ListUncheckedUpdateManyWithoutUserInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   authToken?: Prisma.StringFieldUpdateOperationsInput | string
+  fields?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -694,6 +721,7 @@ export type ListSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   name?: boolean
   slug?: boolean
   authToken?: boolean
+  fields?: boolean
   aiModel?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -709,6 +737,7 @@ export type ListSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   name?: boolean
   slug?: boolean
   authToken?: boolean
+  fields?: boolean
   aiModel?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -722,6 +751,7 @@ export type ListSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   name?: boolean
   slug?: boolean
   authToken?: boolean
+  fields?: boolean
   aiModel?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -735,6 +765,7 @@ export type ListSelectScalar = {
   name?: boolean
   slug?: boolean
   authToken?: boolean
+  fields?: boolean
   aiModel?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -742,7 +773,7 @@ export type ListSelectScalar = {
   userId?: boolean
 }
 
-export type ListOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "authToken" | "aiModel" | "isActive" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["list"]>
+export type ListOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "authToken" | "fields" | "aiModel" | "isActive" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["list"]>
 export type ListInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   items?: boolean | Prisma.List$itemsArgs<ExtArgs>
@@ -776,6 +807,12 @@ export type $ListPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * Allows granular revocation without affecting other lists
      */
     authToken: string
+    /**
+     * Field schema definitions as JSON array
+     * Example: [{ "name": "level", "type": "number", "required": true }, ...]
+     * Types: "text" | "number"
+     */
+    fields: runtime.JsonValue
     /**
      * Optional AI model association for instruction generation
      * e.g., "gemini", "chatgpt", "google-assistant"
@@ -1217,6 +1254,7 @@ export interface ListFieldRefs {
   readonly name: Prisma.FieldRef<"List", 'String'>
   readonly slug: Prisma.FieldRef<"List", 'String'>
   readonly authToken: Prisma.FieldRef<"List", 'String'>
+  readonly fields: Prisma.FieldRef<"List", 'Json'>
   readonly aiModel: Prisma.FieldRef<"List", 'String'>
   readonly isActive: Prisma.FieldRef<"List", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"List", 'DateTime'>

@@ -4,10 +4,12 @@ import { prisma } from '@/lib/db'
 import { syncUser } from '@/lib/sync-user'
 import { generateListToken, generateSlug } from '@/lib/auth-utils'
 import type { AiModel } from '@/lib/ai-instructions'
+import type { ListFieldDefinition } from '@/types/list-fields'
 
 export interface CreateListInput {
   name: string
   aiModel: AiModel
+  fields: ListFieldDefinition[]
 }
 
 export interface CreateListResult {
@@ -18,6 +20,7 @@ export interface CreateListResult {
     slug: string
     authToken: string
     aiModel: string
+    fields: ListFieldDefinition[]
   }
 }
 
@@ -62,6 +65,26 @@ export async function createList(input: CreateListInput): Promise<CreateListResp
       }
     }
 
+    // Validate fields
+    if (!input.fields || input.fields.length === 0) {
+      return {
+        success: false,
+        error: 'At least one field is required',
+        code: 'VALIDATION_ERROR',
+      }
+    }
+
+    // Validate each field has required properties
+    for (const field of input.fields) {
+      if (!field.name || !field.label || !field.type) {
+        return {
+          success: false,
+          error: 'Each field must have name, label, and type',
+          code: 'VALIDATION_ERROR',
+        }
+      }
+    }
+
     // Generate slug from name
     const slug = generateSlug(name)
     if (!slug) {
@@ -93,12 +116,16 @@ export async function createList(input: CreateListInput): Promise<CreateListResp
     // Generate unique auth token
     const authToken = generateListToken()
 
+    // Ensure fields have proper order
+    const orderedFields = input.fields.map((f, i) => ({ ...f, order: i }))
+
     // Create the list
     const list = await prisma.list.create({
       data: {
         name,
         slug,
         authToken,
+        fields: orderedFields,
         aiModel: input.aiModel,
         userId: user.id,
       },
@@ -112,6 +139,7 @@ export async function createList(input: CreateListInput): Promise<CreateListResp
         slug: list.slug,
         authToken: list.authToken,
         aiModel: list.aiModel!,
+        fields: orderedFields,
       },
     }
   } catch (error) {

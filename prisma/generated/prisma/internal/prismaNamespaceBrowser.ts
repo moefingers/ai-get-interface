@@ -90,6 +90,7 @@ export const ListScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   authToken: 'authToken',
+  fields: 'fields',
   aiModel: 'aiModel',
   isActive: 'isActive',
   createdAt: 'createdAt',

@@ -56,6 +56,11 @@ model List {
   /// Allows granular revocation without affecting other lists
   authToken   String   @unique @map("auth_token") @db.VarChar(64)
   
+  /// Field schema definitions as JSON array
+  /// Example: [{ "name": "level", "type": "number", "required": true }, ...]
+  /// Types: "text" | "number"
+  fields      Json     @default("[]")
+  
   /// Optional AI model association for instruction generation
   /// e.g., "gemini", "chatgpt", "google-assistant"
   aiModel     String?  @map("ai_model")

@@ -46,11 +46,19 @@ export function getAiModelInfo(model: AiModel): AiModelInfo {
   return AI_MODELS.find((m) => m.value === model)!
 }
 
+export interface ListField {
+  name: string
+  label: string
+  type: 'text' | 'number'
+  required: boolean
+}
+
 export interface InstructionParams {
   listName: string
   slug: string
   token: string
   domain: string
+  fields: ListField[]
 }
 
 /**
@@ -60,7 +68,7 @@ export function generateAiInstructions(
   model: AiModel,
   params: InstructionParams
 ): string {
-  const { listName, slug, token, domain } = params
+  const { listName, slug, token, domain, fields } = params
   
   // Base algorithm explanation - same for all models
   const algorithmBlock = `
@@ -76,18 +84,30 @@ When making requests, calculate the auth code as follows:
 4. Use the resulting lowercase hex string as the auth code
 `.trim()
 
+  // Build field params string
+  const fieldParams = fields
+    .map((f) => `${f.name}={${f.label}${f.required ? '' : ', optional'}}`)
+    .join('&')
+  
+  // Build field definitions for instructions
+  const fieldDefs = fields
+    .map((f) => `- ${f.name} (${f.required ? 'required' : 'optional'}): ${f.label} [${f.type}]`)
+    .join('\n')
+
   // Endpoint format
   const endpointBlock = `
 ## Endpoint
 
-To add an item:
+To add an entry:
 \`\`\`
-GET ${domain}/api/list/${slug}/append?auth={auth_code}&item={item_text}
+GET ${domain}/api/list/${slug}/append?auth={auth_code}&${fieldParams}
 \`\`\`
 
-Replace:
-- {auth_code} with the HMAC-SHA256 result
-- {item_text} with URL-encoded item content
+## Fields
+
+${fieldDefs}
+
+All values must be URL-encoded.
 `.trim()
 
   switch (model) {
