@@ -19,6 +19,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     <h1 style="font-size:4rem;margin:0;">OK</h1>
     <h2>Everything went right!</h2>
     <p style="color:#8b949e;">good=true</p>
+    <a href="?good=false" style="display:inline-block;margin-top:1rem;padding:0.5rem 1rem;background:#f85149;color:#fff;text-decoration:none;border-radius:6px;">Make things worse</a>
   </div>
 </body>
 </html>`,
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     <h1 style="font-size:4rem;margin:0;">ERR</h1>
     <h2>Everything went wrong!</h2>
     <p style="color:#8b949e;">good=${good ?? 'undefined'}</p>
+    <a href="?good=true" style="display:inline-block;margin-top:1rem;padding:0.5rem 1rem;background:#3fb950;color:#fff;text-decoration:none;border-radius:6px;">Make things better</a>
   </div>
 </body>
 </html>`,
