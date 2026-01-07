@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Settings } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
 import { AppShell, type UserList } from '@/components/layout'
-import { DraftEditor } from '@/components/lists'
+import { DraftEditor, ListSettingsTray } from '@/components/lists'
 import type { ListFieldDefinition } from '@/types/list-fields'
 import type { AiModel } from '@/lib/ai-instructions'
 
@@ -18,6 +19,7 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
   const router = useRouter()
   const [lists, setLists] = useState(initialLists)
   const [selectedListId, setSelectedListId] = useState<string | undefined>()
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   // Keep lists in sync with server data
   useEffect(() => {
@@ -43,7 +45,18 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
 
   const handleSelectList = useCallback((listId: string) => {
     setSelectedListId(listId)
+    setIsSettingsOpen(false) // Close settings when switching lists
   }, [])
+
+  const handleListRenamed = useCallback((newName: string) => {
+    // Update local state immediately for responsive UI
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id === selectedListId ? { ...l, name: newName } : l
+      )
+    )
+    router.refresh()
+  }, [selectedListId, router])
 
   const handleDraftPublished = useCallback(() => {
     // Stay on the same list (it's now published)
@@ -105,23 +118,46 @@ export function HomeClient({ userName, initialLists }: HomeClientProps) {
         />
       )}
 
-      {/* Input area at bottom - hide when editing draft */}
+      {/* Settings tray - slides up above input */}
       {selectedList && !selectedList.isDraft && (
-        <div className={cn('border-t p-4', tw.border.muted, tw.bg.main)}>
-          <div className="max-w-3xl mx-auto">
-            <div className={cn('flex items-center gap-2 p-3 rounded-xl', tw.bg.card, 'border', tw.border.default)}>
-              <input
-                type="text"
-                placeholder={`Add to ${selectedList.name}...`}
-                className={cn(
-                  'flex-1 bg-transparent border-none outline-none',
-                  tw.text.primary,
-                  tw.placeholder.default
-                )}
-              />
-              <button className={cn(tw.btn.primary, 'px-4 py-2')}>
-                Add
-              </button>
+        <div className={cn('border-t', tw.border.muted, tw.bg.main)}>
+          <ListSettingsTray
+            list={selectedList}
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            onRenamed={handleListRenamed}
+          />
+
+          {/* Input area at bottom */}
+          <div className="p-4">
+            <div className="max-w-3xl mx-auto">
+              <div className={cn('flex items-center gap-2 p-3 rounded-xl', tw.bg.card, 'border', tw.border.default)}>
+                <button
+                  type="button"
+                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                  className={cn(
+                    'p-2 rounded-lg transition-colors',
+                    isSettingsOpen ? tw.text.accent : tw.text.muted,
+                    tw.hover.text.primary,
+                    tw.hover.bg.subtle
+                  )}
+                  title="List settings"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+                <input
+                  type="text"
+                  placeholder={`Add to ${selectedList.name}...`}
+                  className={cn(
+                    'flex-1 bg-transparent border-none outline-none',
+                    tw.text.primary,
+                    tw.placeholder.default
+                  )}
+                />
+                <button className={cn(tw.btn.primary, 'px-4 py-2')}>
+                  Add
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -164,12 +200,9 @@ function ListContent({ list }: ListContentProps) {
   return (
     <div className="flex-1 flex flex-col p-8 overflow-y-auto">
       <div className="max-w-3xl mx-auto w-full">
-        <h1 className={cn('text-2xl font-bold mb-2', tw.text.primary)}>
+        <h1 className={cn('text-2xl font-bold mb-6', tw.text.primary)}>
           {list.name}
         </h1>
-        <p className={cn('text-sm mb-6', tw.text.muted)}>
-          {list.aiModel ? `Connected to ${list.aiModel}` : 'No AI connected'}
-        </p>
 
         {/* Items will be loaded here */}
         <div className={cn('text-center py-12', tw.text.muted)}>

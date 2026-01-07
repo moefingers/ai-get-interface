@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition, useEffect, useRef, useCallback } from 'react'
-import { Save } from 'lucide-react'
-import { Button, Input, Label, Select, ColumnHider } from '@/components/ui'
+import { Save, Eye, Pencil } from 'lucide-react'
+import { Button, Input, Label, Select, ColumnHider, RowHider, SlidingView, SlidingViewItem } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
 import { publishList, deleteDraft, updateDraft, type PublishListResponse } from '@/app/lists/actions'
@@ -30,10 +30,28 @@ const FIELD_TYPE_OPTIONS = [
 ]
 
 const AUTOSAVE_DEBOUNCE_MS = 800
+const FIELD_ANIMATION_MS = 300
 
 type Step = 'edit' | 'success'
 // idle = no changes, pending = changes waiting for debounce, saving = request in flight, saved = success, error = failed
 type SaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error'
+
+// Internal field type with unique ID for animations
+interface InternalField extends ListFieldDefinition {
+  _id: string
+  _leaving?: boolean
+}
+
+let fieldIdCounter = 0
+const generateFieldId = () => `field-${++fieldIdCounter}-${Date.now()}`
+
+const toInternalFields = (fields: ListFieldDefinition[]): InternalField[] =>
+  fields.map((f) => ({ ...f, _id: generateFieldId() }))
+
+const toExternalFields = (fields: InternalField[]): ListFieldDefinition[] =>
+  fields
+    .filter((f) => !f._leaving)
+    .map(({ _id, _leaving, ...rest }) => rest)
 
 export function DraftEditor({
   listId,
@@ -49,18 +67,26 @@ export function DraftEditor({
   const [error, setError] = useState<string | null>(null)
   const [publishedList, setPublishedList] = useState<PublishListResponse | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [showFieldsPreview, setShowFieldsPreview] = useState(false)
 
   const [name, setName] = useState(initialName === 'New List' ? '' : initialName)
-  const [fields, setFields] = useState<ListFieldDefinition[]>(
-    initialFields.length > 0 
-      ? initialFields 
-      : [{ name: 'item', label: 'Item', type: 'text', required: true, order: 0 }]
+  const [fields, setFields] = useState<InternalField[]>(() =>
+    toInternalFields(
+      initialFields.length > 0 
+        ? initialFields 
+        : [{ name: 'item', label: 'Item', type: 'text', required: true, order: 0 }]
+    )
   )
   const [aiModel, setAiModel] = useState<AiModel>(initialAiModel || 'chatgpt')
 
   // Track if initial load to skip first auto-save
   const isInitialMount = useRef(true)
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+
+  // Get external fields (exclude leaving ones)
+  const externalFields = toExternalFields(fields)
+  // Get visible fields (all, including leaving - for animation)
+  const visibleFields = fields
 
   // Auto-save function
   const saveChanges = useCallback(async () => {
@@ -69,7 +95,7 @@ export function DraftEditor({
       listId,
       name,
       aiModel,
-      fields,
+      fields: externalFields,
     })
 
     if (result.success) {
@@ -83,7 +109,7 @@ export function DraftEditor({
       setSaveStatus('error')
       setError(result.error)
     }
-  }, [listId, name, aiModel, fields, initialName, onNameChanged])
+  }, [listId, name, aiModel, externalFields, initialName, onNameChanged])
 
   // Debounced auto-save effect
   useEffect(() => {
@@ -112,24 +138,49 @@ export function DraftEditor({
         clearTimeout(debounceTimer.current)
       }
     }
-  }, [name, aiModel, fields, saveChanges])
+  }, [name, aiModel, externalFields, saveChanges])
 
   const addField = () => {
+    const newId = generateFieldId()
+    
+    // Add field in "leaving" state initially (hidden)
     setFields((prev) => [
       ...prev,
       {
+        _id: newId,
+        _leaving: true, // Start hidden for animation
         name: '',
         label: '',
         type: 'text' as FieldType,
         required: true,
-        order: prev.length,
+        order: prev.filter((f) => !f._leaving).length,
       },
     ])
+
+    // Flip to visible after next frame to trigger animation
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setFields((prev) =>
+          prev.map((f) => (f._id === newId ? { ...f, _leaving: false } : f))
+        )
+      })
+    })
   }
 
-  const removeField = (index: number) => {
-    if (fields.length <= 1) return
-    setFields((prev) => prev.filter((_, i) => i !== index))
+  const removeField = (fieldId: string) => {
+    // Count non-leaving fields
+    const activeCount = fields.filter((f) => !f._leaving).length
+    if (activeCount <= 1) return
+
+    // Mark as leaving (triggers animation)
+    setFields((prev) =>
+      prev.map((f) => (f._id === fieldId ? { ...f, _leaving: true } : f))
+    )
+
+    // Remove from DOM after animation completes
+    setTimeout(() => {
+      setFields((prev) => prev.filter((f) => f._id !== fieldId))
+    }, FIELD_ANIMATION_MS)
   }
 
   const updateField = (index: number, updates: Partial<ListFieldDefinition>) => {
@@ -155,7 +206,7 @@ export function DraftEditor({
         listId,
         name: name.trim() || 'Untitled List',
         aiModel,
-        fields,
+        fields: externalFields,
       })
 
       if (result.success) {
@@ -175,7 +226,7 @@ export function DraftEditor({
     })
   }
 
-  const canPublish = name.trim().length > 0 && fields.every((f) => f.name && f.label)
+  const canPublish = name.trim().length > 0 && externalFields.every((f) => f.name && f.label)
 
   if (step === 'success' && publishedList?.success) {
     return (
@@ -217,81 +268,180 @@ export function DraftEditor({
 
         {/* Fields Section */}
         <section className={cn('p-6 rounded-xl', tw.card.default)}>
-          <h2 className={cn('text-lg font-semibold mb-4', tw.text.primary)}>
-            Fields
-          </h2>
-          <p className={cn('text-sm mb-4', tw.text.muted)}>
-            What data should each entry capture?
-          </p>
-
-          <div className="space-y-3">
-            {fields.map((field, index) => (
-              <div
-                key={index}
-                className={cn(
-                  'p-4 rounded-lg border space-y-3',
-                  tw.bg.main,
-                  tw.border.muted
-                )}
-              >
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <Label htmlFor={`field-label-${index}`}>Label</Label>
-                    <Input
-                      id={`field-label-${index}`}
-                      value={field.label}
-                      onChange={(e) => updateField(index, { label: e.target.value })}
-                      placeholder="e.g., Pain Level, Item Name"
-                    />
-                  </div>
-                  <div className="w-32">
-                    <Label htmlFor={`field-type-${index}`}>Type</Label>
-                    <Select
-                      id={`field-type-${index}`}
-                      value={field.type}
-                      onChange={(e) => updateField(index, { type: e.target.value as FieldType })}
-                      options={FIELD_TYPE_OPTIONS}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <label className={cn('flex items-center gap-2 text-sm', tw.text.secondary)}>
-                    <input
-                      type="checkbox"
-                      checked={field.required}
-                      onChange={(e) => updateField(index, { required: e.target.checked })}
-                      className="rounded"
-                    />
-                    Required
-                  </label>
-
-                  {fields.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeField(index)}
-                      className={cn('text-sm', tw.text.error)}
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className={cn('text-lg font-semibold', tw.text.primary)}>
+              Fields
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowFieldsPreview(!showFieldsPreview)}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors',
+                showFieldsPreview 
+                  ? [tw.bg.primaryMuted, tw.text.primary]
+                  : [tw.bg.hover, tw.text.secondary]
+              )}
+            >
+              {showFieldsPreview ? (
+                <>
+                  <Pencil className="w-4 h-4" />
+                  Edit
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4" />
+                  Preview
+                </>
+              )}
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={addField}
-            className={cn(
-              'w-full mt-3 py-2 border border-dashed rounded-lg text-sm',
-              tw.border.muted,
-              tw.text.secondary,
-              tw.hover.bg.subtle
-            )}
+          <SlidingView 
+            activeIndex={showFieldsPreview ? 1 : 0} 
+            viewCount={2}
+            className="min-h-50"
           >
-            + Add Field
-          </button>
+            {/* Edit View */}
+            <SlidingViewItem>
+              <p className={cn('text-sm mb-4', tw.text.muted)}>
+                What data should each entry capture?
+              </p>
+
+              <div>
+                {visibleFields.map((field, index) => (
+                  <RowHider 
+                    key={field._id} 
+                    showWhen={!field._leaving}
+                    duration={FIELD_ANIMATION_MS}
+                    className={cn('transition-all',
+                        !field._leaving ? 'mb-4 last:mb-0' : '')}
+                  >
+                    <div
+                      className={cn(
+                        'p-4 rounded-lg border space-y-3',
+                        tw.bg.main,
+                        tw.border.muted
+                      )}
+                    >
+                      <div className="flex gap-3">
+                        <div className="flex-1">
+                          <Label htmlFor={`field-label-${field._id}`}>Label</Label>
+                          <Input
+                            id={`field-label-${field._id}`}
+                            value={field.label}
+                            onChange={(e) => updateField(index, { label: e.target.value })}
+                            placeholder="e.g., Pain Level, Item Name"
+                          />
+                        </div>
+                        <div className="w-32">
+                          <Label htmlFor={`field-type-${field._id}`}>Type</Label>
+                          <Select
+                            id={`field-type-${field._id}`}
+                            value={field.type}
+                            onChange={(e) => updateField(index, { type: e.target.value as FieldType })}
+                            options={FIELD_TYPE_OPTIONS}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <label className={cn('flex items-center gap-2 text-sm', tw.text.secondary)}>
+                          <input
+                            type="checkbox"
+                            checked={field.required}
+                            onChange={(e) => updateField(index, { required: e.target.checked })}
+                            className="rounded"
+                          />
+                          Required
+                        </label>
+
+                        {externalFields.length > 1 && !field._leaving && (
+                          <button
+                            type="button"
+                            onClick={() => removeField(field._id)}
+                            className={cn('text-sm', tw.text.error)}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </RowHider>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={addField}
+                className={cn(
+                  'w-full mt-3 py-2 border border-dashed rounded-lg text-sm',
+                  tw.border.muted,
+                  tw.text.secondary,
+                  tw.hover.bg.subtle
+                )}
+              >
+                + Add Field
+              </button>
+            </SlidingViewItem>
+
+            {/* Preview View - Table Format */}
+            <SlidingViewItem>
+              <p className={cn('text-sm mb-4', tw.text.muted)}>
+                This is how your list entries will look:
+              </p>
+
+              <div className={cn('rounded-lg border overflow-hidden', tw.border.muted)}>
+                {/* Table Header */}
+                <div className={cn('flex border-b', tw.bg.hover, tw.border.muted)}>
+                  {externalFields.map((field, index) => (
+                    <div
+                      key={index}
+                      className={cn(
+                        'flex-1 px-4 py-3 text-sm font-medium',
+                        tw.text.primary,
+                        index > 0 && 'border-l',
+                        tw.border.muted
+                      )}
+                    >
+                      {field.label || `Field ${index + 1}`}
+                      {field.required && <span className={tw.text.error}> *</span>}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Sample Rows */}
+                {[1, 2, 3].map((row) => (
+                  <div 
+                    key={row} 
+                    className={cn(
+                      'flex',
+                      row < 3 && 'border-b',
+                      tw.border.muted
+                    )}
+                  >
+                    {externalFields.map((field, index) => (
+                      <div
+                        key={index}
+                        className={cn(
+                          'flex-1 px-4 py-3 text-sm',
+                          tw.text.muted,
+                          index > 0 && 'border-l',
+                          tw.border.muted
+                        )}
+                      >
+                        {field.type === 'number' ? '—' : '...'}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              <p className={cn('text-xs mt-3 text-center', tw.text.muted)}>
+                {externalFields.length} column{externalFields.length !== 1 ? 's' : ''} • 
+                {externalFields.filter(f => f.required).length} required
+              </p>
+            </SlidingViewItem>
+          </SlidingView>
         </section>
 
         {/* AI Model Section */}

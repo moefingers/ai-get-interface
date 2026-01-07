@@ -412,3 +412,58 @@ export async function getListById(listId: string) {
     },
   })
 }
+
+// ============================================
+// RENAME LIST
+// ============================================
+
+export interface RenameListResult {
+  success: true
+  name: string
+}
+
+export interface RenameListError {
+  success: false
+  error: string
+}
+
+export type RenameListResponse = RenameListResult | RenameListError
+
+/**
+ * Renames a published list (name only, slug stays the same)
+ */
+export async function renameList(
+  listId: string,
+  newName: string
+): Promise<RenameListResponse> {
+  const user = await syncUser()
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  const trimmedName = newName.trim()
+  if (!trimmedName) {
+    return { success: false, error: 'Name is required' }
+  }
+
+  if (trimmedName.length > 100) {
+    return { success: false, error: 'Name must be 100 characters or less' }
+  }
+
+  // Verify ownership
+  const list = await prisma.list.findFirst({
+    where: { id: listId, userId: user.id },
+  })
+
+  if (!list) {
+    return { success: false, error: 'List not found' }
+  }
+
+  // Update name
+  await prisma.list.update({
+    where: { id: listId },
+    data: { name: trimmedName },
+  })
+
+  return { success: true, name: trimmedName }
+}
