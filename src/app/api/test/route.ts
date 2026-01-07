@@ -16,7 +16,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 <head><title>Success</title></head>
 <body style="background:#0d1117;color:#3fb950;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
   <div style="text-align:center;">
-    <h1 style="font-size:4rem;margin:0;">✓</h1>
+    <h1 style="font-size:4rem;margin:0;">✅</h1>
     <h2>Everything went right!</h2>
     <p style="color:#8b949e;">good=true</p>
   </div>
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 <head><title>Error</title></head>
 <body style="background:#0d1117;color:#f85149;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
   <div style="text-align:center;">
-    <h1 style="font-size:4rem;margin:0;">✗</h1>
+    <h1 style="font-size:4rem;margin:0;">❌</h1>
     <h2>Everything went wrong!</h2>
     <p style="color:#8b949e;">good=${good ?? 'undefined'}</p>
   </div>

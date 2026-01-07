@@ -30,9 +30,39 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type',
 }
 
-// Helper to create JSON response with CORS
-function jsonResponse(data: object, status: number = 200): NextResponse {
-  return NextResponse.json(data, { status, headers: corsHeaders })
+// Helper to create HTML response with CORS (for AI readability)
+function successHtml(message: string, details?: string): NextResponse {
+  return new NextResponse(
+    `<!DOCTYPE html>
+<html>
+<head><title>Success</title></head>
+<body style="background:#0d1117;color:#3fb950;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+  <div style="text-align:center;">
+    <h1 style="font-size:4rem;margin:0;">✓</h1>
+    <h2>${message}</h2>
+    ${details ? `<p style="color:#8b949e;">${details}</p>` : ''}
+  </div>
+</body>
+</html>`,
+    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'text/html' } }
+  )
+}
+
+function errorHtml(message: string, details?: string, status: number = 400): NextResponse {
+  return new NextResponse(
+    `<!DOCTYPE html>
+<html>
+<head><title>Error</title></head>
+<body style="background:#0d1117;color:#f85149;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+  <div style="text-align:center;">
+    <h1 style="font-size:4rem;margin:0;">✗</h1>
+    <h2>${message}</h2>
+    ${details ? `<p style="color:#8b949e;">${details}</p>` : ''}
+  </div>
+</body>
+</html>`,
+    { status, headers: { ...corsHeaders, 'Content-Type': 'text/html' } }
+  )
 }
 
 interface RouteParams {
@@ -54,10 +84,7 @@ export async function GET(
   // 1. Extract auth code (normalize to lowercase for case-insensitive comparison)
   const authCode = searchParams.get('auth')?.toLowerCase()
   if (!authCode) {
-    return jsonResponse(
-      { success: false, error: 'Missing auth parameter' },
-      401
-    )
+    return errorHtml('Missing auth parameter', 'The auth query parameter is required', 401)
   }
 
   // 2. Extract source (optional, defaults to "ai")
@@ -70,25 +97,16 @@ export async function GET(
   })
 
   if (!list) {
-    return jsonResponse(
-      { success: false, error: 'List not found' },
-      404
-    )
+    return errorHtml('List not found', `No list exists with slug: ${slug}`, 404)
   }
 
   // 4. Check list is published and active
   if (list.isDraft) {
-    return jsonResponse(
-      { success: false, error: 'List is not published' },
-      404
-    )
+    return errorHtml('List is not published', 'This list is still a draft', 404)
   }
 
   if (!list.isActive) {
-    return jsonResponse(
-      { success: false, error: 'List is not active' },
-      404
-    )
+    return errorHtml('List is not active', 'This list has been deactivated', 404)
   }
 
   // 5. Validate HMAC auth code
@@ -100,10 +118,7 @@ export async function GET(
 
   if (!isValid) {
     console.log(`[API] Auth failed for list ${slug}`)
-    return jsonResponse(
-      { success: false, error: 'Invalid or expired auth code' },
-      401
-    )
+    return errorHtml('Invalid or expired auth code', 'The HMAC authentication code is incorrect or has expired', 401)
   }
 
   // 6. Parse and validate field data
@@ -120,10 +135,7 @@ export async function GET(
 
   const validation = validateItemData(queryParams, fields)
   if (!validation.valid) {
-    return jsonResponse(
-      { success: false, error: 'Validation failed', details: validation.errors },
-      400
-    )
+    return errorHtml('Validation failed', validation.errors.join(', '), 400)
   }
 
   // 7. Check for duplicates (same content within same minute)
@@ -147,17 +159,10 @@ export async function GET(
     const existingContent = JSON.stringify(duplicate.content)
     if (existingContent === contentJson) {
       console.log(`[API] Duplicate detected for list ${slug}, skipping`)
-      return jsonResponse({
-        success: true,
-        duplicate: true,
-        message: 'Item already exists (duplicate within same minute)',
-        item: {
-          id: duplicate.id,
-          content: duplicate.content as Record<string, string | number>,
-          source: duplicate.source,
-          createdAt: duplicate.createdAt.toISOString(),
-        },
-      })
+      const contentPreview = Object.entries(validation.data)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(', ')
+      return successHtml('Item already exists', `Duplicate skipped: ${contentPreview}`)
     }
   }
 
@@ -172,13 +177,8 @@ export async function GET(
 
   console.log(`[API] Item added to list ${slug} from ${source}`)
 
-  return jsonResponse({
-    success: true,
-    item: {
-      id: item.id,
-      content: item.content as Record<string, string | number>,
-      source: item.source,
-      createdAt: item.createdAt.toISOString(),
-    },
-  })
+  const contentPreview = Object.entries(item.content as Record<string, unknown>)
+    .map(([k, v]) => `${k}=${v}`)
+    .join(', ')
+  return successHtml(`Added to ${list.name}`, contentPreview)
 }
