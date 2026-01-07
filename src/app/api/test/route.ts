@@ -13,31 +13,31 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return new NextResponse(
       `<!DOCTYPE html>
 <html>
-<head><title>Success</title></head>
+<head><meta charset="utf-8"><title>Success</title></head>
 <body style="background:#0d1117;color:#3fb950;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
   <div style="text-align:center;">
-    <h1 style="font-size:4rem;margin:0;">✅</h1>
+    <h1 style="font-size:4rem;margin:0;">OK</h1>
     <h2>Everything went right!</h2>
     <p style="color:#8b949e;">good=true</p>
   </div>
 </body>
 </html>`,
-      { status: 200, headers: { 'Content-Type': 'text/html' } }
+      { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
     )
   }
 
   return new NextResponse(
     `<!DOCTYPE html>
 <html>
-<head><title>Error</title></head>
+<head><meta charset="utf-8"><title>Error</title></head>
 <body style="background:#0d1117;color:#f85149;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
   <div style="text-align:center;">
-    <h1 style="font-size:4rem;margin:0;">❌</h1>
+    <h1 style="font-size:4rem;margin:0;">ERR</h1>
     <h2>Everything went wrong!</h2>
     <p style="color:#8b949e;">good=${good ?? 'undefined'}</p>
   </div>
 </body>
 </html>`,
-    { status: 200, headers: { 'Content-Type': 'text/html' } }
+    { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
   )
 }
