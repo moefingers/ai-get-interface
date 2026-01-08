@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, Copy, Check, ChevronDown, AlertTriangle } from 'lucide-react'
+import { X, Copy, Check, ChevronDown, AlertTriangle, Pencil } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
 import { RowHider, SlidingView, SlidingViewItem } from '@/components/ui'
@@ -136,12 +136,11 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                 Name
               </label>
               {isEditing ? (
-                <div className="flex gap-2">
+                <div className="flex items-center gap-1">
                   <input
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    onBlur={handleSaveName}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSaveName()
                       if (e.key === 'Escape') {
@@ -152,7 +151,7 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                     autoFocus
                     disabled={isPending}
                     className={cn(
-                      'flex-1 px-2 py-1 rounded border text-sm',
+                      'flex-1 px-2 py-1 rounded border text-sm min-w-0',
                       tw.bg.main,
                       tw.border.default,
                       tw.text.primary,
@@ -160,19 +159,50 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                       tw.focus.border.primary
                     )}
                   />
+                  <button
+                    type="button"
+                    onClick={handleSaveName}
+                    disabled={isPending}
+                    className={cn(
+                      'p-1 rounded transition-colors',
+                      tw.text.success,
+                      tw.hover.bg.subtle
+                    )}
+                    title="Save"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditName(list.name)
+                      setIsEditing(false)
+                    }}
+                    disabled={isPending}
+                    className={cn(
+                      'p-1 rounded transition-colors',
+                      tw.text.muted,
+                      'hover:text-error',
+                      tw.hover.bg.subtle
+                    )}
+                    title="Cancel"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
                   className={cn(
-                    'text-sm text-left w-full px-2 py-1 rounded',
+                    'flex items-center gap-2 text-sm text-left px-2 py-1 rounded group',
                     tw.text.primary,
                     tw.hover.bg.subtle,
                     'transition-colors'
                   )}
                 >
-                  {list.name}
+                  <span>{list.name}</span>
+                  <Pencil className={cn('w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity', tw.text.muted)} />
                 </button>
               )}
             </div>
@@ -238,15 +268,15 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                 </div>
               </SlidingViewItem>
               <SlidingViewItem>
-                <div className="space-y-3">
-                  <div className={cn('flex items-start gap-2 text-sm', tw.text.warning)}>
+                <div className="flex flex-row items-start gap-3">
+                  <div className={cn('flex-1 flex items-start gap-2 text-sm', tw.text.warning)}>
                     <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
                     <p>
                       This will unpublish your list. Any AI assistants using the current instructions 
-                      will stop working until you re-publish and update their instructions.
+                      will stop working until you re-publish and update any changed instructions.
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-row items-start gap-2">
                     <button
                       type="button"
                       onClick={() => setShowConvertConfirm(false)}
@@ -265,7 +295,7 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                       onClick={handleConvertToDraft}
                       disabled={isPending}
                       className={cn(
-                        'px-3 py-1.5 rounded-lg text-sm',
+                        'px-3 py-1.5 rounded-lg text-sm whitespace-nowrap',
                         tw.bg.error,
                         'text-white',
                         'hover:opacity-90',
