@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Modal, Button, Input, Label, Select } from '@/components/ui'
+import { Modal, Button, Input, Label, Select, SlidingView, SlidingViewItem } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
 import { createDraft, publishList, type PublishListResponse } from '@/app/lists/actions'
@@ -21,7 +21,7 @@ export interface NewListModalProps {
   onSuccess?: () => void
 }
 
-type Step = 'name' | 'fields' | 'auth-method' | 'ai-model' | 'success'
+type Step = 'name' | 'fields' | 'setup' | 'success'
 
 interface FormState {
   name: string
@@ -38,6 +38,7 @@ const FIELD_TYPE_OPTIONS = [
 
 export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProps) {
   const [step, setStep] = useState<Step>('name')
+  const [setupSlide, setSetupSlide] = useState<0 | 1>(0) // 0 = AI model, 1 = auth method
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [createdList, setCreatedList] = useState<PublishListResponse | null>(null)
@@ -52,6 +53,7 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
 
   const resetForm = () => {
     setStep('name')
+    setSetupSlide(0)
     setError(null)
     setCreatedList(null)
     setForm({
@@ -154,10 +156,8 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
         return 'Create New List'
       case 'fields':
         return 'Define Fields'
-      case 'auth-method':
-        return 'Security Method'
-      case 'ai-model':
-        return 'Choose AI Assistant'
+      case 'setup':
+        return 'Setup'
       case 'success':
         return 'List Created!'
     }
@@ -169,10 +169,8 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
         return 'Give your list a name'
       case 'fields':
         return 'What data should each entry have?'
-      case 'auth-method':
-        return 'How should requests be authenticated?'
-      case 'ai-model':
-        return 'Which AI will add items to this list?'
+      case 'setup':
+        return 'How will you use this list?'
       case 'success':
         return 'Copy these instructions to your AI'
     }
@@ -306,7 +304,8 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
             <Button
               onClick={() => {
                 setError(null)
-                setStep('auth-method')
+                setSetupSlide(0)
+                setStep('setup')
               }}
               disabled={!canProceedFromFields}
             >
@@ -316,111 +315,115 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
         </div>
       )}
 
-      {/* Step: Auth Method */}
-      {step === 'auth-method' && (
+      {/* Step: Setup (AI Model + Security) */}
+      {step === 'setup' && (
         <div className="space-y-4">
-          <div className="space-y-2">
-            {AUTH_METHODS.map((method) => (
-              <label
-                key={method.value}
-                className={cn(
-                  'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
-                  form.authMethod === method.value
-                    ? [tw.border.primary, tw.bg.primaryMuted]
-                    : [tw.border.muted, tw.hover.bg.subtle]
-                )}
-              >
-                <input
-                  type="radio"
-                  name="auth-method"
-                  value={method.value}
-                  checked={form.authMethod === method.value}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, authMethod: e.target.value as AuthMethod }))
-                  }
-                  className="sr-only"
-                />
-                <div className="flex-1">
-                  <div className={cn('font-medium', tw.text.primary)}>{method.label}</div>
-                  <div className={cn('text-sm mt-1', tw.text.muted)}>
-                    {method.description}
-                  </div>
-                </div>
-                {form.authMethod === method.value && (
-                  <CheckIcon className={cn('w-5 h-5 mt-0.5', tw.text.primary)} />
-                )}
-              </label>
-            ))}
-          </div>
+          <SlidingView activeIndex={setupSlide} viewCount={2} className="min-h-65">
+            {/* Slide 1: AI Model */}
+            <SlidingViewItem>
+              <p className={cn('text-sm mb-3', tw.text.muted)}>
+                Which AI assistant will add items?
+              </p>
+              <div className="space-y-2">
+                {AI_MODELS.map((model) => (
+                  <label
+                    key={model.value}
+                    className={cn(
+                      'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                      form.aiModel === model.value
+                        ? [tw.border.primary, tw.bg.primaryMuted]
+                        : [tw.border.muted, tw.hover.bg.subtle]
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="ai-model"
+                      value={model.value}
+                      checked={form.aiModel === model.value}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, aiModel: e.target.value as AiModel }))
+                      }
+                      className="sr-only"
+                    />
+                    <div className="flex-1">
+                      <div className={tw.text.primary}>{model.label}</div>
+                      <div className={cn('text-sm', tw.text.muted)}>
+                        Paste to: {model.destination}
+                      </div>
+                    </div>
+                    {form.aiModel === model.value && (
+                      <CheckIcon className={cn('w-5 h-5', tw.text.primary)} />
+                    )}
+                  </label>
+                ))}
+              </div>
+            </SlidingViewItem>
+
+            {/* Slide 2: Auth Method */}
+            <SlidingViewItem>
+              <p className={cn('text-sm mb-3', tw.text.muted)}>
+                How should requests be secured?
+              </p>
+              <div className="space-y-2">
+                {AUTH_METHODS.map((method) => (
+                  <label
+                    key={method.value}
+                    className={cn(
+                      'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                      form.authMethod === method.value
+                        ? [tw.border.primary, tw.bg.primaryMuted]
+                        : [tw.border.muted, tw.hover.bg.subtle]
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="auth-method"
+                      value={method.value}
+                      checked={form.authMethod === method.value}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, authMethod: e.target.value as AuthMethod }))
+                      }
+                      className="sr-only"
+                    />
+                    <div className="flex-1">
+                      <div className={cn('font-medium', tw.text.primary)}>{method.label}</div>
+                      <div className={cn('text-sm mt-1', tw.text.muted)}>
+                        {method.description}
+                      </div>
+                    </div>
+                    {form.authMethod === method.value && (
+                      <CheckIcon className={cn('w-5 h-5 mt-0.5', tw.text.primary)} />
+                    )}
+                  </label>
+                ))}
+              </div>
+            </SlidingViewItem>
+          </SlidingView>
 
           {error && (
             <p className={cn('text-sm', tw.text.error)}>{error}</p>
           )}
 
           <div className="flex justify-between pt-2">
-            <Button variant="ghost" onClick={() => setStep('fields')}>
-              Back
-            </Button>
             <Button
+              variant="ghost"
               onClick={() => {
-                setError(null)
-                setStep('ai-model')
+                if (setupSlide === 1) {
+                  setSetupSlide(0)
+                } else {
+                  setStep('fields')
+                }
               }}
             >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Step: AI Model */}
-      {step === 'ai-model' && (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            {AI_MODELS.map((model) => (
-              <label
-                key={model.value}
-                className={cn(
-                  'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
-                  form.aiModel === model.value
-                    ? [tw.border.primary, tw.bg.primaryMuted]
-                    : [tw.border.muted, tw.hover.bg.subtle]
-                )}
-              >
-                <input
-                  type="radio"
-                  name="ai-model"
-                  value={model.value}
-                  checked={form.aiModel === model.value}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, aiModel: e.target.value as AiModel }))
-                  }
-                  className="sr-only"
-                />
-                <div className="flex-1">
-                  <div className={tw.text.primary}>{model.label}</div>
-                  <div className={cn('text-sm', tw.text.muted)}>
-                    Paste to: {model.destination}
-                  </div>
-                </div>
-                {form.aiModel === model.value && (
-                  <CheckIcon className={cn('w-5 h-5', tw.text.primary)} />
-                )}
-              </label>
-            ))}
-          </div>
-
-          {error && (
-            <p className={cn('text-sm', tw.text.error)}>{error}</p>
-          )}
-
-          <div className="flex justify-between pt-2">
-            <Button variant="ghost" onClick={() => setStep('auth-method')}>
               Back
             </Button>
-            <Button onClick={handleSubmit} disabled={isPending}>
-              {isPending ? 'Creating...' : 'Create List'}
-            </Button>
+            {setupSlide === 0 ? (
+              <Button onClick={() => setSetupSlide(1)}>Next</Button>
+            ) : (
+              <Button onClick={handleSubmit} disabled={isPending}>
+                {isPending ? 'Creating...' : 'Create List'}
+              </Button>
+            )}
           </div>
         </div>
       )}
