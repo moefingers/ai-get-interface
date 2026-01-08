@@ -122,10 +122,14 @@ export function ListInputBar({
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   onKeyDown={handleKeyDown}
                   className={cn(
-                    'flex-1 min-w-0 bg-transparent border-none outline-none',
+                    'flex-1 min-w-0 bg-transparent outline-none',
+                    'border-0 border-b border-transparent',
                     tw.text.primary,
                     tw.placeholder.default,
-                    idx > 0 && ['border-l pl-2', tw.border.muted]
+                    tw.focus.outline.none,
+                    tw.focus.border.primary,
+                    'focus:ring-0',
+                    idx > 0 && 'pl-2'
                   )}
                 />
               )
@@ -136,9 +140,13 @@ export function ListInputBar({
               placeholder={`Add to ${listName}...`}
               onKeyDown={handleKeyDown}
               className={cn(
-                'flex-1 min-w-0 bg-transparent border-none outline-none',
+                'flex-1 min-w-0 bg-transparent outline-none',
+                'border-0 border-b border-transparent',
                 tw.text.primary,
-                tw.placeholder.default
+                tw.placeholder.default,
+                tw.focus.outline.none,
+                tw.focus.border.primary,
+                'focus:ring-0'
               )}
             />
           )}
