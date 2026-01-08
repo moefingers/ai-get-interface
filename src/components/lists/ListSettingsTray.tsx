@@ -1,13 +1,15 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
-import { X, Copy, Check, ChevronDown } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { X, Copy, Check, ChevronDown, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
 import { RowHider } from '@/components/ui'
 import type { UserList } from '@/components/layout'
 import {
   AI_MODELS,
+  AUTH_METHODS,
   INSTRUCTION_STYLES,
   generateAiInstructions,
   type AiModel,
@@ -17,7 +19,7 @@ import {
   type InstructionStyleInfo,
 } from '@/lib/ai-instructions'
 import type { ListFieldDefinition } from '@/types/list-fields'
-import { renameList } from '@/app/lists/actions'
+import { renameList, convertToDraft } from '@/app/lists/actions'
 
 export interface ListSettingsTrayProps {
   list: UserList
@@ -29,12 +31,14 @@ export interface ListSettingsTrayProps {
 const TRAY_ANIMATION_MS = 300
 
 export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSettingsTrayProps) {
+  const router = useRouter()
   const [selectedModel, setSelectedModel] = useState<AiModel>('chatgpt')
   const [selectedStyle, setSelectedStyle] = useState<InstructionStyle>('fetch')
   const [copied, setCopied] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(list.name)
   const [isPending, startTransition] = useTransition()
+  const [showConvertConfirm, setShowConvertConfirm] = useState(false)
 
   // Reset edit state when list changes
   useEffect(() => {
@@ -88,6 +92,17 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
     }
   }
 
+  const handleConvertToDraft = () => {
+    startTransition(async () => {
+      const result = await convertToDraft(list.id)
+      if (result.success) {
+        onClose()
+        router.refresh()
+      }
+    })
+  }
+
+  const authMethodInfo = AUTH_METHODS.find((m) => m.value === list.authMethod) || AUTH_METHODS[0]
   const selectedModelInfo = AI_MODELS.find((m) => m.value === selectedModel)!
 
   return (
@@ -172,6 +187,16 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
               </p>
             </div>
 
+            {/* Auth Method (read-only) */}
+            <div>
+              <label className={cn('text-xs font-medium mb-1 block', tw.text.muted)}>
+                Auth Method
+              </label>
+              <p className={cn('text-sm px-2 py-1', tw.text.secondary)}>
+                {authMethodInfo.label}
+              </p>
+            </div>
+
             {/* Fields count */}
             <div>
               <label className={cn('text-xs font-medium mb-1 block', tw.text.muted)}>
@@ -181,21 +206,80 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                 {fields.length} field{fields.length !== 1 ? 's' : ''} configured
               </p>
             </div>
+          </div>
 
-            {/* Status */}
-            <div>
-              <label className={cn('text-xs font-medium mb-1 block', tw.text.muted)}>
-                Status
-              </label>
-              <p className={cn('text-sm px-2 py-1', tw.text.secondary)}>
-                {list.isActive ? 'Active' : 'Inactive'}
-              </p>
-            </div>
+          {/* Change Setup Section */}
+          <div className={cn('mb-6 p-4 rounded-lg border', tw.border.muted, tw.bg.card)}>
+            {showConvertConfirm ? (
+              <div className="space-y-3">
+                <div className={cn('flex items-start gap-2 text-sm', tw.text.warning)}>
+                  <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                  <p>
+                    This will unpublish your list. Any AI assistants using the current instructions 
+                    will stop working until you re-publish and update their instructions.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowConvertConfirm(false)}
+                    disabled={isPending}
+                    className={cn(
+                      'px-3 py-1.5 rounded-lg text-sm',
+                      tw.text.secondary,
+                      tw.hover.bg.subtle,
+                      'transition-colors'
+                    )}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConvertToDraft}
+                    disabled={isPending}
+                    className={cn(
+                      'px-3 py-1.5 rounded-lg text-sm',
+                      tw.bg.error,
+                      'text-white',
+                      'hover:opacity-90',
+                      'transition-colors'
+                    )}
+                  >
+                    {isPending ? 'Converting...' : 'Convert to Draft'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={cn('text-sm font-medium', tw.text.primary)}>
+                    Need to change auth, slug, or fields?
+                  </p>
+                  <p className={cn('text-xs mt-0.5', tw.text.muted)}>
+                    Convert back to draft to make instruction breaking changes
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowConvertConfirm(true)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-lg text-sm',
+                    tw.bg.hover,
+                    tw.text.secondary,
+                    tw.hover.bg.subtle,
+                    tw.hover.text.primary,
+                    'transition-colors'
+                  )}
+                >
+                  Change Setup
+                </button>
+              </div>
+            )}
           </div>
 
           {/* AI Instructions Section */}
           <div>
-            <div className="flex flex-wrap items-center gap-3 mb-3">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
               <label className={cn('text-sm font-medium', tw.text.primary)}>
                 Instructions for
               </label>
@@ -209,35 +293,17 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                 selected={selectedStyle}
                 onChange={setSelectedStyle}
               />
-              <a
-                href={selectedModelInfo.destinationUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn('text-xs underline', tw.text.accent)}
-              >
-                Go to {selectedModelInfo.destination} →
-              </a>
-            </div>
-
-            {/* Instructions preview with copy */}
-            <div className={cn('relative rounded-lg border', tw.border.default, tw.bg.main)}>
-              <pre className={cn(
-                'p-3 text-xs overflow-x-auto max-h-48 overflow-y-auto',
-                tw.text.secondary
-              )}>
-                {instructions}
-              </pre>
               <button
                 type="button"
                 onClick={handleCopy}
                 className={cn(
-                  'absolute top-2 right-2 p-2 rounded-lg transition-colors',
-                  tw.bg.card,
+                  'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm',
+                  tw.bg.main,
                   tw.border.default,
                   'border',
-                  copied ? tw.text.success : tw.text.muted,
-                  !copied && tw.hover.text.primary,
-                  !copied && tw.hover.bg.subtle
+                  copied ? tw.text.success : tw.text.primary,
+                  tw.hover.bg.subtle,
+                  'transition-colors'
                 )}
                 title={copied ? 'Copied!' : 'Copy instructions'}
               >
@@ -247,6 +313,32 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                   <Copy className="w-4 h-4" />
                 )}
               </button>
+              <a
+                href={selectedModelInfo.destinationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm',
+                  tw.bg.main,
+                  tw.border.default,
+                  'border',
+                  tw.text.accent,
+                  tw.hover.bg.subtle,
+                  'transition-colors'
+                )}
+              >
+                Go to {selectedModelInfo.destination}
+              </a>
+            </div>
+
+            {/* Instructions preview */}
+            <div className={cn('rounded-lg border', tw.border.default, tw.bg.main)}>
+              <pre className={cn(
+                'p-3 text-xs overflow-x-auto max-h-48 overflow-y-auto',
+                tw.text.secondary
+              )}>
+                {instructions}
+              </pre>
             </div>
           </div>
         </div>

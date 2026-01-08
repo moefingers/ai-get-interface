@@ -632,3 +632,64 @@ export async function getListItems(listId: string): Promise<GetItemsResponse> {
   }
 }
 
+// ============================================
+// CONVERT TO DRAFT
+// ============================================
+
+export interface ConvertToDraftResult {
+  success: true
+  list: {
+    id: string
+    slug: string
+  }
+}
+
+export interface ConvertToDraftError {
+  success: false
+  error: string
+}
+
+export type ConvertToDraftResponse = ConvertToDraftResult | ConvertToDraftError
+
+/**
+ * Converts a published list back to draft status for editing
+ * This allows users to make breaking changes (auth, slug, fields)
+ */
+export async function convertToDraft(listId: string): Promise<ConvertToDraftResponse> {
+  try {
+    const user = await syncUser()
+    if (!user) {
+      return { success: false, error: 'You must be signed in' }
+    }
+
+    // Verify ownership
+    const existing = await prisma.list.findFirst({
+      where: { id: listId, userId: user.id },
+    })
+
+    if (!existing) {
+      return { success: false, error: 'List not found' }
+    }
+
+    if (existing.isDraft) {
+      return { success: false, error: 'List is already a draft' }
+    }
+
+    // Convert to draft
+    const updated = await prisma.list.update({
+      where: { id: listId },
+      data: { isDraft: true },
+    })
+
+    return {
+      success: true,
+      list: {
+        id: updated.id,
+        slug: updated.slug,
+      },
+    }
+  } catch (error) {
+    console.error('Failed to convert to draft:', error)
+    return { success: false, error: 'Failed to convert to draft' }
+  }
+}
