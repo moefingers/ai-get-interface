@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Save, Eye, Pencil } from 'lucide-react'
-import { Button, Input, Label, Select, ColumnHider, RowHider, SlidingView, SlidingViewItem } from '@/components/ui'
+import { Button, Input, Label, ColumnHider, RowHider, SlidingView, SlidingViewItem } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
 import { publishList, deleteDraft, updateDraft, type PublishListResponse } from '@/app/lists/actions'
@@ -26,11 +26,6 @@ export interface DraftEditorProps {
   onDeleted: () => void
   onNameChanged?: (name: string) => void
 }
-
-const FIELD_TYPE_OPTIONS = [
-  { value: 'text', label: 'Text' },
-  { value: 'number', label: 'Number' },
-]
 
 const AUTOSAVE_DEBOUNCE_MS = 800
 const FIELD_ANIMATION_MS = 300
@@ -72,6 +67,7 @@ export function DraftEditor({
   const [publishedList, setPublishedList] = useState<PublishListResponse | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [showFieldsPreview, setShowFieldsPreview] = useState(false)
+  const [setupSlide, setSetupSlide] = useState<0 | 1>(0) // 0 = AI model, 1 = auth method
 
   const [name, setName] = useState(initialName === 'New List' ? '' : initialName)
   const [fields, setFields] = useState<InternalField[]>(() =>
@@ -341,14 +337,27 @@ export function DraftEditor({
                             placeholder="e.g., Pain Level, Item Name"
                           />
                         </div>
-                        <div className="w-32">
-                          <Label htmlFor={`field-type-${field._id}`}>Type</Label>
-                          <Select
-                            id={`field-type-${field._id}`}
-                            value={field.type}
-                            onChange={(e) => updateField(index, { type: e.target.value as FieldType })}
-                            options={FIELD_TYPE_OPTIONS}
-                          />
+                        <div className="w-28">
+                          <Label>Type</Label>
+                          <button
+                            type="button"
+                            onClick={() => updateField(index, { type: field.type === 'text' ? 'number' : 'text' })}
+                            className={cn(
+                              'w-full h-10 px-3 rounded-lg border text-left text-sm overflow-hidden',
+                              tw.bg.main,
+                              tw.border.muted,
+                              tw.hover.border.primary
+                            )}
+                          >
+                            <div className="relative">
+                              <RowHider showWhen={field.type === 'text'} duration={150}>
+                                <span className={tw.text.primary}>Text</span>
+                              </RowHider>
+                              <RowHider showWhen={field.type === 'number'} duration={150}>
+                                <span className={tw.text.primary}>Number</span>
+                              </RowHider>
+                            </div>
+                          </button>
                         </div>
                       </div>
 
@@ -452,46 +461,118 @@ export function DraftEditor({
           </SlidingView>
         </section>
 
-        {/* AI Model Section */}
+        {/* Setup Section (AI Assistant + Security) */}
         <section className={cn('p-6 rounded-xl', tw.card.default)}>
-          <h2 className={cn('text-lg font-semibold mb-4', tw.text.primary)}>
-            AI Assistant
-          </h2>
-          <p className={cn('text-sm mb-4', tw.text.muted)}>
-            Which AI will add items to this list?
-          </p>
-
-          <div className="space-y-2">
-            {AI_MODELS.map((model) => (
-              <label
-                key={model.value}
-                className={cn(
-                  'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
-                  aiModel === model.value
-                    ? [tw.border.primary, tw.bg.primaryMuted]
-                    : [tw.border.muted, tw.hover.bg.subtle]
-                )}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className={cn('text-lg font-semibold', tw.text.primary)}>
+              {setupSlide === 0 ? 'AI Assistant' : 'Security'}
+            </h2>
+            {setupSlide === 1 && (
+              <button
+                type="button"
+                onClick={() => setSetupSlide(0)}
+                className={cn('text-sm', tw.text.accent, tw.hover.text.primary)}
               >
-                <input
-                  type="radio"
-                  name="ai-model"
-                  value={model.value}
-                  checked={aiModel === model.value}
-                  onChange={(e) => setAiModel(e.target.value as AiModel)}
-                  className="sr-only"
-                />
-                <div className="flex-1">
-                  <div className={tw.text.primary}>{model.label}</div>
-                  <div className={cn('text-sm', tw.text.muted)}>
-                    Paste to: {model.destination}
-                  </div>
-                </div>
-                {aiModel === model.value && (
-                  <CheckIcon className={cn('w-5 h-5', tw.text.primary)} />
-                )}
-              </label>
-            ))}
+                ← Change AI
+              </button>
+            )}
           </div>
+
+          <SlidingView activeIndex={setupSlide} viewCount={2} className="min-h-52">
+            {/* Slide 1: AI Model */}
+            <SlidingViewItem>
+              <p className={cn('text-sm mb-4', tw.text.muted)}>
+                Which AI will add items to this list?
+              </p>
+              <div className="space-y-2">
+                {AI_MODELS.map((model) => (
+                  <label
+                    key={model.value}
+                    className={cn(
+                      'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                      aiModel === model.value
+                        ? [tw.border.primary, tw.bg.primaryMuted]
+                        : [tw.border.muted, tw.hover.bg.subtle]
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="ai-model"
+                      value={model.value}
+                      checked={aiModel === model.value}
+                      onChange={(e) => {
+                        setAiModel(e.target.value as AiModel)
+                        setSetupSlide(1)
+                      }}
+                      className="sr-only"
+                    />
+                    <div className="flex-1">
+                      <div className={tw.text.primary}>{model.label}</div>
+                      <div className={cn('text-sm', tw.text.muted)}>
+                        Paste to: {model.destination}
+                      </div>
+                    </div>
+                    {aiModel === model.value && (
+                      <CheckIcon className={cn('w-5 h-5', tw.text.primary)} />
+                    )}
+                  </label>
+                ))}
+              </div>
+            </SlidingViewItem>
+
+            {/* Slide 2: Security Method */}
+            <SlidingViewItem>
+              <p className={cn('text-sm mb-4', tw.text.muted)}>
+                How should requests be authenticated?
+              </p>
+              <div className="space-y-2">
+                {AUTH_METHODS.map((method) => {
+                  // Google auth only makes sense for Gemini
+                  const isGoogleOnly = method.value === 'google'
+                  const isDisabled = isGoogleOnly && aiModel !== 'gemini'
+                  
+                  return (
+                    <label
+                      key={method.value}
+                      className={cn(
+                        'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                        isDisabled && 'opacity-50 cursor-not-allowed',
+                        authMethod === method.value && !isDisabled
+                          ? [tw.border.primary, tw.bg.primaryMuted]
+                          : [tw.border.muted, !isDisabled && tw.hover.bg.subtle]
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="auth-method"
+                        value={method.value}
+                        checked={authMethod === method.value}
+                        onChange={(e) => setAuthMethod(e.target.value as AuthMethod)}
+                        disabled={isDisabled}
+                        className="sr-only"
+                      />
+                      <div className="flex-1">
+                        <div className={cn('font-medium', tw.text.primary)}>
+                          {method.label}
+                          {isGoogleOnly && aiModel !== 'gemini' && (
+                            <span className={cn('ml-2 text-xs font-normal', tw.text.muted)}>
+                              (Gemini only)
+                            </span>
+                          )}
+                        </div>
+                        <div className={cn('text-sm mt-1', tw.text.muted)}>
+                          {method.description}
+                        </div>
+                      </div>
+                      {authMethod === method.value && !isDisabled && (
+                        <CheckIcon className={cn('w-5 h-5 mt-0.5', tw.text.primary)} />
+                      )}
+                    </label>
+                  )
+                })}
+              </div>
+            </SlidingViewItem>
+          </SlidingView>
         </section>
 
         {/* Error */}

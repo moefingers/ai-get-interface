@@ -8,10 +8,13 @@ import { RowHider } from '@/components/ui'
 import type { UserList } from '@/components/layout'
 import {
   AI_MODELS,
+  INSTRUCTION_STYLES,
   generateAiInstructions,
   type AiModel,
   type AiModelInfo,
   type AuthMethod,
+  type InstructionStyle,
+  type InstructionStyleInfo,
 } from '@/lib/ai-instructions'
 import type { ListFieldDefinition } from '@/types/list-fields'
 import { renameList } from '@/app/lists/actions'
@@ -27,6 +30,7 @@ const TRAY_ANIMATION_MS = 300
 
 export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSettingsTrayProps) {
   const [selectedModel, setSelectedModel] = useState<AiModel>('chatgpt')
+  const [selectedStyle, setSelectedStyle] = useState<InstructionStyle>('fetch')
   const [copied, setCopied] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(list.name)
@@ -48,7 +52,7 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
     }
   })()
 
-  // Generate instructions for selected model
+  // Generate instructions for selected model and style
   const instructions = generateAiInstructions(selectedModel, {
     listName: list.name,
     slug: list.slug,
@@ -61,6 +65,7 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
       type: f.type,
       required: f.required,
     })),
+    style: selectedStyle,
   })
 
   const handleCopy = async () => {
@@ -190,7 +195,7 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
 
           {/* AI Instructions Section */}
           <div>
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex flex-wrap items-center gap-3 mb-3">
               <label className={cn('text-sm font-medium', tw.text.primary)}>
                 Instructions for
               </label>
@@ -198,6 +203,11 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                 models={AI_MODELS}
                 selected={selectedModel}
                 onChange={setSelectedModel}
+              />
+              <StyleSelector
+                styles={INSTRUCTION_STYLES}
+                selected={selectedStyle}
+                onChange={setSelectedStyle}
               />
               <a
                 href={selectedModelInfo.destinationUrl}
@@ -306,6 +316,79 @@ function ModelSelector({ models, selected, onChange }: ModelSelectorProps) {
                 )}
               >
                 {model.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+interface StyleSelectorProps {
+  styles: InstructionStyleInfo[]
+  selected: InstructionStyle
+  onChange: (style: InstructionStyle) => void
+}
+
+function StyleSelector({ styles, selected, onChange }: StyleSelectorProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const selectedInfo = styles.find((s) => s.value === selected)!
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm',
+          tw.bg.main,
+          tw.border.default,
+          'border',
+          tw.text.primary,
+          tw.hover.bg.subtle,
+          'transition-colors'
+        )}
+      >
+        {selectedInfo.label}
+        <ChevronDown className={cn(
+          'w-4 h-4 transition-transform',
+          isOpen && 'rotate-180'
+        )} />
+      </button>
+
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
+          {/* Dropdown */}
+          <div className={cn(
+            'absolute top-full left-0 mt-1 py-1 rounded-lg border shadow-lg z-20 min-w-44',
+            tw.bg.elevated,
+            tw.border.default
+          )}>
+            {styles.map((style) => (
+              <button
+                key={style.value}
+                type="button"
+                onClick={() => {
+                  onChange(style.value)
+                  setIsOpen(false)
+                }}
+                className={cn(
+                  'w-full text-left px-3 py-2 text-sm',
+                  selected === style.value ? tw.text.accent : tw.text.primary,
+                  tw.hover.bg.subtle,
+                  'transition-colors'
+                )}
+              >
+                <div>{style.label}</div>
+                <div className={cn('text-xs mt-0.5', tw.text.muted)}>
+                  {style.description}
+                </div>
               </button>
             ))}
           </div>
