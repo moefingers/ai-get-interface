@@ -2,19 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { validateTimeAuth } from '@/lib/auth-utils'
 import { validateItemData, type ListFieldDefinition } from '@/types/list-fields'
+import { stackServerApp } from '@/stack/server'
 
 /**
  * AI List Add Endpoint
  * 
- * Two authentication modes:
+ * Three authentication modes:
  * 1. Static token: GET /go/[slug]/add?token={authToken}&source={source}&field1=val1
- * 2. HMAC time code: GET /go/[slug]/add?t={code}&source={source}&field1=val1
+ * 2. HMAC time code: GET /go/[slug]/add?t={code}&source={source}&field1=val1 (dormant)
+ * 3. Session auth: GET /go/[slug]/add?source={source}&field1=val1 (requires logged-in browser)
  * 
  * Called by AI assistants to add items to a user's list.
  * 
  * Query Parameters:
  * - token (for static auth): Per-list auth token
- * - t (for HMAC auth): Time-based code
+ * - t (for HMAC auth): Time-based code (dormant)
  * - source (optional): Which AI sent it (gemini, chatgpt, etc)
  * - [field params]: Values for the list fields
  */
@@ -80,16 +82,11 @@ export async function GET(
   // 1. Extract auth params
   const staticToken = searchParams.get('token')
   const timeCode = searchParams.get('t')?.toLowerCase()
-  
-  // Need at least one auth method
-  if (!staticToken && !timeCode) {
-    return errorHtml('Missing authentication', 'Either token or t parameter is required', 401)
-  }
 
   // 2. Extract source (optional, defaults to "ai")
   const source = searchParams.get('source') || 'ai'
 
-  // 3. Look up list by slug (include user for toleranceSeconds)
+  // 3. Look up list by slug (include user for session validation)
   const list = await prisma.list.findFirst({
     where: { slug },
     include: { user: true },
@@ -108,18 +105,18 @@ export async function GET(
     return errorHtml('List is not active', 'This list has been deactivated', 404)
   }
 
-  // 5. Validate authentication based on method provided
+  // 5. Validate authentication based on list's authMethod and provided params
   let isAuthorized = false
   
   if (staticToken) {
-    // Static token auth: direct comparison
+    // Static token auth: direct comparison (works for 'token' authMethod)
     isAuthorized = staticToken === list.authToken
     if (!isAuthorized) {
       console.log(`[GO] Invalid static token for list ${slug}`)
       return errorHtml('Invalid token', 'The provided token is incorrect', 401)
     }
   } else if (timeCode) {
-    // HMAC time code auth: validate against user's seed
+    // HMAC time code auth: validate against user's seed (dormant feature)
     isAuthorized = validateTimeAuth(
       list.authToken,
       timeCode,
@@ -129,6 +126,29 @@ export async function GET(
       console.log(`[GO] Invalid time code for list ${slug}`)
       return errorHtml('Invalid or expired code', 'The time code is incorrect or has expired', 401)
     }
+  } else if (list.authMethod === 'session') {
+    // Session auth: check if user is logged in and owns this list
+    const stackUser = await stackServerApp.getUser()
+    
+    if (!stackUser) {
+      // Not logged in - redirect to login with return URL
+      const returnUrl = request.nextUrl.toString()
+      const loginUrl = new URL('/auth/sign-in', request.nextUrl.origin)
+      loginUrl.searchParams.set('after_auth_return_to', returnUrl)
+      return NextResponse.redirect(loginUrl)
+    }
+    
+    // Check if logged-in user owns this list
+    if (stackUser.id !== list.user.stackAuthId) {
+      console.log(`[GO] Session user ${stackUser.id} does not own list ${slug} (owner: ${list.user.stackAuthId})`)
+      return errorHtml('Not authorized', 'You do not own this list', 403)
+    }
+    
+    isAuthorized = true
+    console.log(`[GO] Session auth successful for list ${slug}`)
+  } else {
+    // No auth provided and list doesn't use session auth
+    return errorHtml('Missing authentication', 'A token parameter is required', 401)
   }
 
   // 6. Parse and validate field data

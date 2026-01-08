@@ -6,11 +6,11 @@
  * 
  * Two auth methods:
  * 1. Static token: Simple URL with token param - AI fetches directly
- * 2. Google relay: Apps Script URL - provides Google identity verification
+ * 2. Session: Browser opens URL, user must be logged into our site
  */
 
 export type AiModel = 'gemini' | 'chatgpt' | 'google-assistant'
-export type AuthMethod = 'token' | 'google'
+export type AuthMethod = 'token' | 'session'
 export type InstructionStyle = 'fetch' | 'link' | 'browser'
 
 export interface InstructionStyleInfo {
@@ -61,10 +61,10 @@ export const AUTH_METHODS: AuthMethodInfo[] = [
     implemented: true,
   },
   {
-    value: 'google',
-    label: 'Google Account Relay',
-    description: 'Only requests from your Google account can add items. Adds an extra verification step.',
-    implemented: false,
+    value: 'session',
+    label: 'Browser Session',
+    description: 'Opens in your browser - you must be logged in. More secure but requires browser interaction.',
+    implemented: true,
   },
 ]
 
@@ -110,8 +110,8 @@ export interface InstructionParams {
   style?: InstructionStyle
 }
 
-// Google Apps Script relay URL (deployed web app)
-const GOOGLE_RELAY_URL = 'https://script.google.com/macros/s/AKfycbypdyjklRHOT25NmdWZ_g8HDWZHPHFTImyrxqgESnlxSAnEy88p-1Q_7DNyJSvvX2le/exec'
+// Google Apps Script relay URL - DEPRECATED, keeping for reference
+// const GOOGLE_RELAY_URL = 'https://script.google.com/macros/s/AKfycbypdyjklRHOT25NmdWZ_g8HDWZHPHFTImyrxqgESnlxSAnEy88p-1Q_7DNyJSvvX2le/exec'
 
 /**
  * Generates AI instructions for a specific model and auth method
@@ -122,8 +122,8 @@ export function generateAiInstructions(
 ): string {
   const { authMethod } = params
   
-  if (authMethod === 'google') {
-    return generateGoogleRelayInstructions(model, params)
+  if (authMethod === 'session') {
+    return generateSessionInstructions(model, params)
   }
   
   // Default: static token
@@ -265,15 +265,16 @@ function getActionSteps(style: InstructionStyle, _url: string): string {
 }
 
 /**
- * Generate instructions for Google relay auth (Apps Script with Google identity)
+ * Generate instructions for session auth (browser opens URL, user must be logged in)
+ * Note: Only 'link' and 'browser' styles make sense - fetch won't have session cookies
  */
-function generateGoogleRelayInstructions(
+function generateSessionInstructions(
   model: AiModel,
   params: InstructionParams
 ): string {
-  const { listName, slug, fields } = params
+  const { listName, slug, domain, fields } = params
   
-  // Build field params string for relay
+  // Build field params string (no token needed - session auth)
   const fieldParams = fields
     .map((f) => `${f.name}={${f.label}${f.required ? '' : ', optional'}}`)
     .join('&')
@@ -283,12 +284,13 @@ function generateGoogleRelayInstructions(
     .map((f) => `- ${f.name} (${f.required ? 'required' : 'optional'}): ${f.label} [${f.type}]`)
     .join('\n')
 
-  const url = `${GOOGLE_RELAY_URL}?list=${slug}&${fieldParams}`
+  const url = `${domain}/go/${slug}/add?source=${model}&${fieldParams}`
 
-  const style = params.style ?? 'fetch'
+  // Session auth requires browser interaction - default to 'browser', fall back from 'fetch'
+  const style = params.style === 'fetch' ? 'browser' : (params.style ?? 'browser')
   const actionVerb = getActionVerb(style)
   const actionSteps = getActionSteps(style, url)
-  const googleNote = 'Note: This URL verifies your Google identity. Only you can add items to this list.'
+  const sessionNote = 'Note: This link requires me to be logged in. The browser will verify my identity.'
 
   switch (model) {
     case 'gemini':
@@ -300,7 +302,7 @@ ${actionSteps}
 
 ## URL
 
-GET ${url}
+${url}
 
 ## Fields
 
@@ -311,9 +313,9 @@ URL-encode all values (spaces become %20 or +).
 ## Example
 
 If I say "add milk to ${listName}", ${actionVerb}:
-${GOOGLE_RELAY_URL}?list=${slug}&${fields[0]?.name || 'item'}=milk
+${domain}/go/${slug}/add?source=${model}&${fields[0]?.name || 'item'}=milk
 
-${googleNote}
+${sessionNote}
 `.trim()
 
     case 'chatgpt':
@@ -325,7 +327,7 @@ ${actionSteps}
 
 ## URL
 
-GET ${url}
+${url}
 
 ## Fields
 
@@ -336,9 +338,9 @@ URL-encode all values (spaces become %20 or +).
 ## Example
 
 If I say "add milk to ${listName}", ${actionVerb}:
-${GOOGLE_RELAY_URL}?list=${slug}&${fields[0]?.name || 'item'}=milk
+${domain}/go/${slug}/add?source=${model}&${fields[0]?.name || 'item'}=milk
 
-${googleNote}
+${sessionNote}
 `.trim()
 
     case 'google-assistant':
@@ -349,7 +351,7 @@ Trigger phrase: "add to ${listName}"
 
 ## URL
 
-GET ${url}
+${url}
 
 ## Fields
 
@@ -357,17 +359,14 @@ ${fieldDefs}
 
 ## Voice Response
 
-After successfully adding an item, respond with:
-"Added {item} to ${listName}"
+After opening the link, respond with:
+"Opening ${listName} to add {item}"
 
-On failure:
-"Sorry, I couldn't add that to ${listName}. Please try again."
-
-Note: This uses your Google account for authentication.
+${sessionNote}
 `.trim()
 
     default:
-      return generateGoogleRelayInstructions('chatgpt', params)
+      return generateSessionInstructions('chatgpt', params)
   }
 }
 

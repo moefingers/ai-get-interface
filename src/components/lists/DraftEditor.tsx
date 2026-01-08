@@ -544,10 +544,7 @@ export function DraftEditor({
               <div className="space-y-2">
                 {AUTH_METHODS.map((method) => {
                   // Disable unimplemented auth methods
-                  const isNotImplemented = !method.implemented
-                  // Google auth only makes sense for Gemini (when implemented)
-                  const isGoogleOnly = method.value === 'google'
-                  const isDisabled = isNotImplemented || (isGoogleOnly && aiModel !== 'gemini')
+                  const isDisabled = !method.implemented
                   
                   return (
                     <label
@@ -572,14 +569,9 @@ export function DraftEditor({
                       <div className="flex-1">
                         <div className={cn('font-medium', tw.text.primary)}>
                           {method.label}
-                          {isNotImplemented && (
+                          {isDisabled && (
                             <span className={cn('ml-2 text-xs font-normal', tw.text.muted)}>
                               (Coming soon)
-                            </span>
-                          )}
-                          {!isNotImplemented && isGoogleOnly && aiModel !== 'gemini' && (
-                            <span className={cn('ml-2 text-xs font-normal', tw.text.muted)}>
-                              (Gemini only)
                             </span>
                           )}
                         </div>

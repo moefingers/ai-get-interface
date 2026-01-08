@@ -33,7 +33,10 @@ const TRAY_ANIMATION_MS = 300
 export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSettingsTrayProps) {
   const router = useRouter()
   const [selectedModel, setSelectedModel] = useState<AiModel>('chatgpt')
-  const [selectedStyle, setSelectedStyle] = useState<InstructionStyle>('fetch')
+  const [selectedStyle, setSelectedStyle] = useState<InstructionStyle>(
+    // Default to 'browser' for session auth (fetch won't work), otherwise 'fetch'
+    list.authMethod === 'session' ? 'browser' : 'fetch'
+  )
   const [copied, setCopied] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(list.name)
@@ -44,7 +47,17 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
   useEffect(() => {
     setEditName(list.name)
     setIsEditing(false)
-  }, [list.id, list.name])
+    // Reset style based on auth method
+    if (list.authMethod === 'session' && selectedStyle === 'fetch') {
+      setSelectedStyle('browser')
+    }
+  }, [list.id, list.name, list.authMethod, selectedStyle])
+
+  // Filter available instruction styles based on auth method
+  // Session auth requires browser interaction - fetch won't have session cookies
+  const availableStyles = list.authMethod === 'session'
+    ? INSTRUCTION_STYLES.filter(s => s.value !== 'fetch')
+    : INSTRUCTION_STYLES
 
   // Parse fields from JSON
   const fields: ListFieldDefinition[] = (() => {
@@ -230,11 +243,11 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
             {/* Fields count */}
             <div>
               <label className={cn('text-xs font-medium mb-1 block', tw.text.muted)}>
-                Fields
+                {fields.length} Field{fields.length !== 1 ? 's' : ''}
               </label>
               <p className={cn('text-sm px-2 py-1', tw.text.secondary)}>
                 {fields.length > 0 
-                  ? fields.map(f => f.label || f.name).join(', ')
+                  ? fields.map(f => '"' + (f.label || f.name) + '"').join(', ')
                   : 'No fields configured'}
               </p>
             </div>
@@ -324,7 +337,7 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                 onChange={setSelectedModel}
               />
               <StyleSelector
-                styles={INSTRUCTION_STYLES}
+                styles={availableStyles}
                 selected={selectedStyle}
                 onChange={setSelectedStyle}
               />
