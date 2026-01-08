@@ -27,6 +27,7 @@ export interface ListPageClientProps {
 export function ListPageClient({ userName, currentList, allLists }: ListPageClientProps) {
   const router = useRouter()
   const [lists, setLists] = useState(allLists)
+  const [loadingListId, setLoadingListId] = useState<string | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [items, setItems] = useState<ListItemData[]>([])
   const [isLoadingItems, setIsLoadingItems] = useState(false)
@@ -36,6 +37,11 @@ export function ListPageClient({ userName, currentList, allLists }: ListPageClie
   useEffect(() => {
     setLists(allLists)
   }, [allLists])
+
+  // Clear loading state when navigation completes
+  useEffect(() => {
+    setLoadingListId(null)
+  }, [currentList.id])
 
   // Load items on mount and when list changes
   useEffect(() => {
@@ -61,6 +67,7 @@ export function ListPageClient({ userName, currentList, allLists }: ListPageClie
     // Find the list and navigate to its slug
     const list = lists.find((l) => l.id === listId)
     if (list) {
+      setLoadingListId(listId)
       router.push(`/lists/${list.slug}`)
     }
     setIsSettingsOpen(false)
@@ -150,6 +157,7 @@ export function ListPageClient({ userName, currentList, allLists }: ListPageClie
       selectedListId={currentList.id}
       onSelectList={handleSelectList}
       onListCreated={handleListCreated}
+      loadingListId={loadingListId}
     >
       {/* Main content area */}
       {currentList.isDraft ? (

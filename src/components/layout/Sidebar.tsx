@@ -28,6 +28,7 @@ export interface SidebarProps {
   selectedListId?: string
   onSelectList?: (listId: string) => void
   onListCreated?: (listId: string, slug: string) => void
+  loadingListId?: string | null
 }
 
 export function Sidebar({ 
@@ -35,6 +36,7 @@ export function Sidebar({
   selectedListId,
   onSelectList,
   onListCreated,
+  loadingListId,
 }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
@@ -141,15 +143,21 @@ export function Sidebar({
                       <button
                         key={list.id}
                         onClick={() => handleSelectList(list.id)}
+                        disabled={loadingListId === list.id}
                         className={cn(
                           'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors',
                           'border border-dashed',
                           selectedListId === list.id
                             ? [tw.bg.primaryMuted, tw.text.primary, tw.border.primary]
-                            : [tw.text.secondary, tw.border.muted, tw.hover.bg.subtle, tw.hover.text.primary]
+                            : [tw.text.secondary, tw.border.muted, tw.hover.bg.subtle, tw.hover.text.primary],
+                          loadingListId === list.id && 'opacity-70'
                         )}
                       >
-                        <EditIcon className="w-4 h-4 shrink-0" />
+                        {loadingListId === list.id ? (
+                          <SpinnerIcon className="w-4 h-4 shrink-0 animate-spin" />
+                        ) : (
+                          <EditIcon className="w-4 h-4 shrink-0" />
+                        )}
                         <span className="truncate italic">{list.name}</span>
                       </button>
                     ))}
@@ -164,14 +172,20 @@ export function Sidebar({
                   <button
                     key={list.id}
                     onClick={() => handleSelectList(list.id)}
+                    disabled={loadingListId === list.id}
                     className={cn(
                       'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors',
                       selectedListId === list.id
                         ? [tw.bg.active, tw.text.primary]
-                        : [tw.text.secondary, tw.hover.bg.subtle, tw.hover.text.primary]
+                        : [tw.text.secondary, tw.hover.bg.subtle, tw.hover.text.primary],
+                      loadingListId === list.id && 'opacity-70'
                     )}
                   >
-                    <ListIcon className="w-4 h-4 shrink-0" />
+                    {loadingListId === list.id ? (
+                      <SpinnerIcon className="w-4 h-4 shrink-0 animate-spin" />
+                    ) : (
+                      <ListIcon className="w-4 h-4 shrink-0" />
+                    )}
                     <span className="truncate">{list.name}</span>
                   </button>
                 ))}
@@ -251,6 +265,30 @@ function ListIcon({ className }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+      />
+    </svg>
+  )
+}
+
+function SpinnerIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
       />
     </svg>
   )

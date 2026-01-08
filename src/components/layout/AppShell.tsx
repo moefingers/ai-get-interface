@@ -10,6 +10,7 @@ export interface AppShellProps {
   selectedListId?: string
   onSelectList?: (listId: string) => void
   onListCreated?: (listId: string, slug: string) => void
+  loadingListId?: string | null
 }
 
 export function AppShell({ 
@@ -18,6 +19,7 @@ export function AppShell({
   selectedListId,
   onSelectList,
   onListCreated,
+  loadingListId,
 }: AppShellProps) {
   return (
     <div className={cn('min-h-screen flex', tw.bg.main)}>
@@ -26,6 +28,7 @@ export function AppShell({
         selectedListId={selectedListId}
         onSelectList={onSelectList}
         onListCreated={onListCreated}
+        loadingListId={loadingListId}
       />
       <main className="flex-1 min-h-screen flex flex-col">
         {children}
