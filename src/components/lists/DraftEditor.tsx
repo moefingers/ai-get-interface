@@ -286,17 +286,18 @@ export function DraftEditor({
                   : [tw.bg.hover, tw.text.secondary]
               )}
             >
-              {showFieldsPreview ? (
-                <>
+              <ColumnHider showWhen={showFieldsPreview} duration={150}>
+                <span className="flex items-center gap-1.5">
                   <Pencil className="w-4 h-4" />
                   Edit
-                </>
-              ) : (
-                <>
+                </span>
+              </ColumnHider>
+              <ColumnHider showWhen={!showFieldsPreview} duration={150}>
+                <span className="flex items-center gap-1.5">
                   <Eye className="w-4 h-4" />
                   Preview
-                </>
-              )}
+                </span>
+              </ColumnHider>
             </button>
           </div>
 
@@ -464,18 +465,33 @@ export function DraftEditor({
         {/* Setup Section (AI Assistant + Security) */}
         <section className={cn('p-6 rounded-xl', tw.card.default)}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className={cn('text-lg font-semibold', tw.text.primary)}>
-              {setupSlide === 0 ? 'AI Assistant' : 'Security'}
+            <h2 className={cn('flex items-center gap-2 text-lg font-semibold', tw.text.primary)}>
+              <ColumnHider showWhen={setupSlide === 0} duration={200}>
+                <span>AI Assistant</span>
+              </ColumnHider>
+              <ColumnHider showWhen={setupSlide === 1} duration={200}>
+                <span className="flex items-center gap-2">
+                  <span className={tw.text.muted}>{getAiModelInfo(aiModel).label}</span>
+                  <span className={tw.text.muted}>—</span>
+                  <span>Security</span>
+                </span>
+              </ColumnHider>
             </h2>
-            {setupSlide === 1 && (
+            <ColumnHider showWhen={setupSlide === 1} duration={200}>
               <button
                 type="button"
                 onClick={() => setSetupSlide(0)}
-                className={cn('text-sm', tw.text.accent, tw.hover.text.primary)}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-sm transition-colors',
+                  tw.bg.hover,
+                  tw.text.secondary,
+                  tw.hover.bg.subtle,
+                  tw.hover.text.primary
+                )}
               >
-                ← Change AI
+                Change AI
               </button>
-            )}
+            </ColumnHider>
           </div>
 
           <SlidingView activeIndex={setupSlide} viewCount={2} className="min-h-52">
