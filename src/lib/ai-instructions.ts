@@ -57,13 +57,13 @@ export const AUTH_METHODS: AuthMethodInfo[] = [
   {
     value: 'token',
     label: 'Simple Token',
-    description: 'Anyone with your URL can add items. Best for personal use with trusted AI assistants.',
+    description: 'Less work - less secure. Static URL that any AI can access easily through a GET.',
     implemented: true,
   },
   {
     value: 'session',
     label: 'Browser Session',
-    description: 'Opens in your browser - you must be logged in. More secure but requires browser interaction.',
+    description: 'More work - more secure. Opens in your browser - you must be logged in. More secure but requires browser interaction.',
     implemented: true,
   },
 ]
