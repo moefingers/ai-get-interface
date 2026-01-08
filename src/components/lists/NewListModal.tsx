@@ -9,7 +9,9 @@ import {
   AI_MODELS, 
   generateAiInstructions, 
   getAiModelInfo,
-  type AiModel 
+  type AiModel,
+  type AuthMethod,
+  AUTH_METHODS,
 } from '@/lib/ai-instructions'
 import type { ListFieldDefinition, FieldType } from '@/types/list-fields'
 
@@ -19,11 +21,12 @@ export interface NewListModalProps {
   onSuccess?: () => void
 }
 
-type Step = 'name' | 'fields' | 'ai-model' | 'success'
+type Step = 'name' | 'fields' | 'auth-method' | 'ai-model' | 'success'
 
 interface FormState {
   name: string
   fields: ListFieldDefinition[]
+  authMethod: AuthMethod
   aiModel: AiModel
   draftId: string | null  // Track draft created internally
 }
@@ -42,6 +45,7 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
   const [form, setForm] = useState<FormState>({
     name: '',
     fields: [{ name: 'item', label: 'Item', type: 'text', required: true, order: 0 }],
+    authMethod: 'token',
     aiModel: 'chatgpt',
     draftId: null,
   })
@@ -53,6 +57,7 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
     setForm({
       name: '',
       fields: [{ name: 'item', label: 'Item', type: 'text', required: true, order: 0 }],
+      authMethod: 'token',
       aiModel: 'chatgpt',
       draftId: null,
     })
@@ -83,6 +88,7 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
       const result = await publishList({
         listId: draftId,
         name: form.name,
+        authMethod: form.authMethod,
         aiModel: form.aiModel,
         fields: form.fields,
       })
@@ -148,6 +154,8 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
         return 'Create New List'
       case 'fields':
         return 'Define Fields'
+      case 'auth-method':
+        return 'Security Method'
       case 'ai-model':
         return 'Choose AI Assistant'
       case 'success':
@@ -161,6 +169,8 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
         return 'Give your list a name'
       case 'fields':
         return 'What data should each entry have?'
+      case 'auth-method':
+        return 'How should requests be authenticated?'
       case 'ai-model':
         return 'Which AI will add items to this list?'
       case 'success':
@@ -296,9 +306,66 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
             <Button
               onClick={() => {
                 setError(null)
-                setStep('ai-model')
+                setStep('auth-method')
               }}
               disabled={!canProceedFromFields}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step: Auth Method */}
+      {step === 'auth-method' && (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            {AUTH_METHODS.map((method) => (
+              <label
+                key={method.value}
+                className={cn(
+                  'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                  form.authMethod === method.value
+                    ? [tw.border.primary, tw.bg.primaryMuted]
+                    : [tw.border.muted, tw.hover.bg.subtle]
+                )}
+              >
+                <input
+                  type="radio"
+                  name="auth-method"
+                  value={method.value}
+                  checked={form.authMethod === method.value}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, authMethod: e.target.value as AuthMethod }))
+                  }
+                  className="sr-only"
+                />
+                <div className="flex-1">
+                  <div className={cn('font-medium', tw.text.primary)}>{method.label}</div>
+                  <div className={cn('text-sm mt-1', tw.text.muted)}>
+                    {method.description}
+                  </div>
+                </div>
+                {form.authMethod === method.value && (
+                  <CheckIcon className={cn('w-5 h-5 mt-0.5', tw.text.primary)} />
+                )}
+              </label>
+            ))}
+          </div>
+
+          {error && (
+            <p className={cn('text-sm', tw.text.error)}>{error}</p>
+          )}
+
+          <div className="flex justify-between pt-2">
+            <Button variant="ghost" onClick={() => setStep('fields')}>
+              Back
+            </Button>
+            <Button
+              onClick={() => {
+                setError(null)
+                setStep('ai-model')
+              }}
             >
               Next
             </Button>
@@ -348,7 +415,7 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
           )}
 
           <div className="flex justify-between pt-2">
-            <Button variant="ghost" onClick={() => setStep('fields')}>
+            <Button variant="ghost" onClick={() => setStep('auth-method')}>
               Back
             </Button>
             <Button onClick={handleSubmit} disabled={isPending}>
@@ -374,6 +441,7 @@ interface SuccessStepProps {
     name: string
     slug: string
     authToken: string
+    authMethod: AuthMethod
     aiModel: string
     fields: ListFieldDefinition[]
   }
@@ -391,6 +459,7 @@ function SuccessStep({ list, onClose }: SuccessStepProps) {
     listName: list.name,
     slug: list.slug,
     token: list.authToken,
+    authMethod: list.authMethod,
     domain,
     fields: list.fields,
   })

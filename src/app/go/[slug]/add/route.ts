@@ -6,12 +6,15 @@ import { validateItemData, type ListFieldDefinition } from '@/types/list-fields'
 /**
  * AI List Add Endpoint
  * 
- * GET /go/[slug]/add?t={code}&source={source}&field1=val1&field2=val2
+ * Two authentication modes:
+ * 1. Static token: GET /go/[slug]/add?token={authToken}&source={source}&field1=val1
+ * 2. HMAC time code: GET /go/[slug]/add?t={code}&source={source}&field1=val1
  * 
  * Called by AI assistants to add items to a user's list.
  * 
  * Query Parameters:
- * - t (required): Time-based code
+ * - token (for static auth): Per-list auth token
+ * - t (for HMAC auth): Time-based code
  * - source (optional): Which AI sent it (gemini, chatgpt, etc)
  * - [field params]: Values for the list fields
  */
@@ -74,10 +77,13 @@ export async function GET(
   const { slug } = await params
   const searchParams = request.nextUrl.searchParams
 
-  // 1. Extract time code (normalize to lowercase for case-insensitive comparison)
+  // 1. Extract auth params
+  const staticToken = searchParams.get('token')
   const timeCode = searchParams.get('t')?.toLowerCase()
-  if (!timeCode) {
-    return errorHtml('Missing t parameter', 'The t query parameter is required', 401)
+  
+  // Need at least one auth method
+  if (!staticToken && !timeCode) {
+    return errorHtml('Missing authentication', 'Either token or t parameter is required', 401)
   }
 
   // 2. Extract source (optional, defaults to "ai")
@@ -102,16 +108,27 @@ export async function GET(
     return errorHtml('List is not active', 'This list has been deactivated', 404)
   }
 
-  // 5. Validate time code
-  const isValid = validateTimeAuth(
-    list.authToken,
-    timeCode,
-    list.user.toleranceSeconds
-  )
-
-  if (!isValid) {
-    console.log(`[GO] Invalid time code for list ${slug}`)
-    return errorHtml('Invalid or expired code', 'The time code is incorrect or has expired', 401)
+  // 5. Validate authentication based on method provided
+  let isAuthorized = false
+  
+  if (staticToken) {
+    // Static token auth: direct comparison
+    isAuthorized = staticToken === list.authToken
+    if (!isAuthorized) {
+      console.log(`[GO] Invalid static token for list ${slug}`)
+      return errorHtml('Invalid token', 'The provided token is incorrect', 401)
+    }
+  } else if (timeCode) {
+    // HMAC time code auth: validate against user's seed
+    isAuthorized = validateTimeAuth(
+      list.authToken,
+      timeCode,
+      list.user.toleranceSeconds
+    )
+    if (!isAuthorized) {
+      console.log(`[GO] Invalid time code for list ${slug}`)
+      return errorHtml('Invalid or expired code', 'The time code is incorrect or has expired', 401)
+    }
   }
 
   // 6. Parse and validate field data
@@ -119,9 +136,10 @@ export async function GET(
   
   // Build query params object (excluding reserved params)
   // Note: URLSearchParams already decodes %20 and + as spaces
+  const reservedParams = ['t', 'token', 'source']
   const queryParams: Record<string, string | undefined> = {}
   searchParams.forEach((value, key) => {
-    if (key !== 't' && key !== 'source') {
+    if (!reservedParams.includes(key)) {
       queryParams[key] = value
     }
   })

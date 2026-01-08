@@ -11,6 +11,7 @@ import {
   generateAiInstructions,
   type AiModel,
   type AiModelInfo,
+  type AuthMethod,
 } from '@/lib/ai-instructions'
 import type { ListFieldDefinition } from '@/types/list-fields'
 import { renameList } from '@/app/lists/actions'
@@ -52,6 +53,7 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
     listName: list.name,
     slug: list.slug,
     token: list.authToken,
+    authMethod: list.authMethod as AuthMethod,
     domain: typeof window !== 'undefined' ? window.location.origin : 'https://example.com',
     fields: fields.map((f) => ({
       name: f.name,

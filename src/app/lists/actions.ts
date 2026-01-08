@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/db'
 import { syncUser } from '@/lib/sync-user'
 import { generateListToken, generateSlug } from '@/lib/auth-utils'
-import type { AiModel } from '@/lib/ai-instructions'
+import type { AiModel, AuthMethod } from '@/lib/ai-instructions'
 import type { ListFieldDefinition } from '@/types/list-fields'
 
 // ============================================
@@ -30,6 +30,7 @@ export type CreateDraftResponse = CreateDraftResult | CreateDraftError
 export interface PublishListInput {
   listId: string
   name: string
+  authMethod: AuthMethod
   aiModel: AiModel
   fields: ListFieldDefinition[]
 }
@@ -41,6 +42,7 @@ export interface PublishListResult {
     name: string
     slug: string
     authToken: string
+    authMethod: AuthMethod
     aiModel: string
     fields: ListFieldDefinition[]
   }
@@ -327,6 +329,7 @@ export async function publishList(input: PublishListInput): Promise<PublishListR
         name,
         slug,
         fields: orderedFields,
+        authMethod: input.authMethod,
         aiModel: input.aiModel,
         isDraft: false,
       },
@@ -339,6 +342,7 @@ export async function publishList(input: PublishListInput): Promise<PublishListR
         name: list.name,
         slug: list.slug,
         authToken: list.authToken,
+        authMethod: list.authMethod as AuthMethod,
         aiModel: list.aiModel!,
         fields: orderedFields,
       },
@@ -378,6 +382,7 @@ export async function getUserLists() {
       name: true,
       slug: true,
       aiModel: true,
+      authMethod: true,
       fields: true,
       isDraft: true,
       isActive: true,
@@ -404,6 +409,7 @@ export async function getListById(listId: string) {
       name: true,
       slug: true,
       aiModel: true,
+      authMethod: true,
       fields: true,
       isDraft: true,
       isActive: true,
@@ -427,6 +433,7 @@ export async function getListBySlug(slug: string) {
       name: true,
       slug: true,
       aiModel: true,
+      authMethod: true,
       fields: true,
       isDraft: true,
       isActive: true,

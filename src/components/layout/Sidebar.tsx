@@ -16,6 +16,7 @@ export interface UserList {
   name: string
   slug: string
   authToken: string
+  authMethod: string
   aiModel: string | null
   fields: string  // JSON string of ListFieldDefinition[]
   isDraft: boolean

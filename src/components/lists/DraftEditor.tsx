@@ -8,9 +8,11 @@ import { tw } from '@/lib/tw-theme'
 import { publishList, deleteDraft, updateDraft, type PublishListResponse } from '@/app/lists/actions'
 import { 
   AI_MODELS, 
+  AUTH_METHODS,
   generateAiInstructions, 
   getAiModelInfo,
-  type AiModel 
+  type AiModel,
+  type AuthMethod,
 } from '@/lib/ai-instructions'
 import type { ListFieldDefinition, FieldType } from '@/types/list-fields'
 
@@ -18,6 +20,7 @@ export interface DraftEditorProps {
   listId: string
   initialName: string
   initialFields: ListFieldDefinition[]
+  initialAuthMethod: AuthMethod | null
   initialAiModel: AiModel | null
   onPublished: (slug: string) => void
   onDeleted: () => void
@@ -57,6 +60,7 @@ export function DraftEditor({
   listId,
   initialName,
   initialFields,
+  initialAuthMethod,
   initialAiModel,
   onPublished,
   onDeleted,
@@ -77,6 +81,7 @@ export function DraftEditor({
         : [{ name: 'item', label: 'Item', type: 'text', required: true, order: 0 }]
     )
   )
+  const [authMethod, setAuthMethod] = useState<AuthMethod>(initialAuthMethod || 'token')
   const [aiModel, setAiModel] = useState<AiModel>(initialAiModel || 'chatgpt')
 
   // Track if initial load to skip first auto-save
@@ -213,6 +218,7 @@ export function DraftEditor({
       const result = await publishList({
         listId,
         name: name.trim() || 'Untitled List',
+        authMethod,
         aiModel,
         fields: externalFields,
       })
@@ -514,6 +520,7 @@ interface SuccessViewProps {
     name: string
     slug: string
     authToken: string
+    authMethod: AuthMethod
     aiModel: string
     fields: ListFieldDefinition[]
   }
@@ -529,6 +536,7 @@ function SuccessView({ list, onDone }: SuccessViewProps) {
     listName: list.name,
     slug: list.slug,
     token: list.authToken,
+    authMethod: list.authMethod,
     domain,
     fields: list.fields,
   })

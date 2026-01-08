@@ -39,7 +39,7 @@ export default async function HomePage() {
 
 function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <main className="min-h-screen bg-linear-to-b from-gray-50 to-white">
       {/* Header */}
       <header className="px-6 py-4 flex justify-between items-center max-w-6xl mx-auto">
         <div className="flex items-center gap-3">

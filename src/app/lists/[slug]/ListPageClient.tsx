@@ -8,7 +8,7 @@ import { AppShell, type UserList } from '@/components/layout'
 import { DraftEditor, ListSettingsTray, ListInputBar } from '@/components/lists'
 import { addItem, getListItems } from '@/app/lists/actions'
 import type { ListFieldDefinition } from '@/types/list-fields'
-import type { AiModel } from '@/lib/ai-instructions'
+import type { AiModel, AuthMethod } from '@/lib/ai-instructions'
 import { Settings } from 'lucide-react'
 
 interface ListItemData {
@@ -158,6 +158,7 @@ export function ListPageClient({ userName, currentList, allLists }: ListPageClie
           listId={currentList.id}
           initialName={currentList.name}
           initialFields={fields}
+          initialAuthMethod={currentList.authMethod as AuthMethod | null}
           initialAiModel={currentList.aiModel as AiModel | null}
           onPublished={handleDraftPublished}
           onDeleted={handleDraftDeleted}

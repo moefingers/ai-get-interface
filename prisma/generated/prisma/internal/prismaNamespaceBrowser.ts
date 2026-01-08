@@ -95,6 +95,7 @@ export const ListScalarFieldEnum = {
   aiModel: 'aiModel',
   isDraft: 'isDraft',
   isActive: 'isActive',
+  authMethod: 'authMethod',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   userId: 'userId'
