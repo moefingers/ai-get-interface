@@ -465,9 +465,9 @@ export function DraftEditor({
         {/* Setup Section (AI Assistant + Security) */}
         <section className={cn('p-6 rounded-xl', tw.card.default)}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className={cn('flex items-center gap-2 text-lg font-semibold', tw.text.primary)}>
+            <h2 className={cn('flex items-center gap-2 text-lg font-semibold whitespace-nowrap', tw.text.primary)}>
               <ColumnHider showWhen={setupSlide === 0} duration={200}>
-                <span>AI Assistant</span>
+                <span>AI Assistant <i className={cn('text-sm', tw.text.muted)}>(you can always change this later)</i></span>
               </ColumnHider>
               <ColumnHider showWhen={setupSlide === 1} duration={200}>
                 <span className="flex items-center gap-2">
@@ -482,7 +482,7 @@ export function DraftEditor({
                 type="button"
                 onClick={() => setSetupSlide(0)}
                 className={cn(
-                  'px-3 py-1.5 rounded-lg text-sm transition-colors',
+                  'px-3 py-1.5 rounded-lg text-sm transition-colors whitespace-nowrap',
                   tw.bg.hover,
                   tw.text.secondary,
                   tw.hover.bg.subtle,
