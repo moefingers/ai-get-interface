@@ -50,6 +50,7 @@ export interface AuthMethodInfo {
   value: AuthMethod
   label: string
   description: string
+  implemented: boolean
 }
 
 export const AUTH_METHODS: AuthMethodInfo[] = [
@@ -57,11 +58,13 @@ export const AUTH_METHODS: AuthMethodInfo[] = [
     value: 'token',
     label: 'Simple Token',
     description: 'Anyone with your URL can add items. Best for personal use with trusted AI assistants.',
+    implemented: true,
   },
   {
     value: 'google',
-    label: 'Google Account Required',
+    label: 'Google Account Relay',
     description: 'Only requests from your Google account can add items. Adds an extra verification step.',
+    implemented: false,
   },
 ]
 
