@@ -29,7 +29,7 @@ const corsHeaders = {
 }
 
 // Helper to create HTML response with CORS (for AI readability)
-// Auto-closes the tab after a countdown for session auth flow
+// Click anywhere to close the tab
 function successHtml(message: string, details?: string): NextResponse {
   return new NextResponse(
     `<!DOCTYPE html>
@@ -40,42 +40,12 @@ function successHtml(message: string, details?: string): NextResponse {
     <h1 style="font-size:4rem;margin:0;">✓</h1>
     <h2>${message}</h2>
     ${details ? `<p style="color:#8b949e;">${details}</p>` : ''}
-    <p id="countdown" style="color:#8b949e;margin-top:2rem;font-size:0.875rem;">Closing in 3...</p>
-    <p id="cancel-hint" style="color:#6e7681;font-size:0.75rem;">Click anywhere to cancel</p>
+    <p style="color:#8b949e;margin-top:2rem;font-size:0.875rem;">Done! Click anywhere to close</p>
   </div>
   <script>
-    let seconds = 3;
-    let cancelled = false;
-    const countdownEl = document.getElementById('countdown');
-    const cancelHintEl = document.getElementById('cancel-hint');
-    
-    const timer = setInterval(() => {
-      if (cancelled) return;
-      seconds--;
-      if (seconds <= 0) {
-        clearInterval(timer);
-        // Trick to allow window.close() on tabs not opened by script
-        window.open('', '_self', '');
-        window.close();
-        // Fallback: if close failed, show message
-        setTimeout(() => {
-          countdownEl.textContent = 'Done! You can close this tab.';
-          cancelHintEl.style.display = 'none';
-          document.body.style.cursor = 'default';
-        }, 100);
-      } else {
-        countdownEl.textContent = 'Closing in ' + seconds + '...';
-      }
-    }, 1000);
-    
     document.body.addEventListener('click', () => {
-      if (!cancelled) {
-        cancelled = true;
-        clearInterval(timer);
-        countdownEl.textContent = 'Auto-close cancelled';
-        cancelHintEl.style.display = 'none';
-        document.body.style.cursor = 'default';
-      }
+      window.open('', '_self', '');
+      window.close();
     });
   </script>
 </body>
