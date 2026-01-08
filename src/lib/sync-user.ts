@@ -24,9 +24,11 @@ export async function syncUser() {
     where: { stackAuthId: stackUser.id },
     update: {
       displayName: stackUser.displayName ?? undefined,
+      email: stackUser.primaryEmail?.toLowerCase() ?? undefined,
     },
     create: {
       stackAuthId: stackUser.id,
+      email: stackUser.primaryEmail!.toLowerCase(),
       displayName: stackUser.displayName,
       algorithmSeed: generateAlgorithmSeed(),
       toleranceSeconds: 30,

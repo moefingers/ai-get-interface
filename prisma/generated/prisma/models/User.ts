@@ -38,6 +38,7 @@ export type UserSumAggregateOutputType = {
 export type UserMinAggregateOutputType = {
   id: string | null
   stackAuthId: string | null
+  email: string | null
   displayName: string | null
   algorithmSeed: string | null
   toleranceSeconds: number | null
@@ -48,6 +49,7 @@ export type UserMinAggregateOutputType = {
 export type UserMaxAggregateOutputType = {
   id: string | null
   stackAuthId: string | null
+  email: string | null
   displayName: string | null
   algorithmSeed: string | null
   toleranceSeconds: number | null
@@ -58,6 +60,7 @@ export type UserMaxAggregateOutputType = {
 export type UserCountAggregateOutputType = {
   id: number
   stackAuthId: number
+  email: number
   displayName: number
   algorithmSeed: number
   toleranceSeconds: number
@@ -78,6 +81,7 @@ export type UserSumAggregateInputType = {
 export type UserMinAggregateInputType = {
   id?: true
   stackAuthId?: true
+  email?: true
   displayName?: true
   algorithmSeed?: true
   toleranceSeconds?: true
@@ -88,6 +92,7 @@ export type UserMinAggregateInputType = {
 export type UserMaxAggregateInputType = {
   id?: true
   stackAuthId?: true
+  email?: true
   displayName?: true
   algorithmSeed?: true
   toleranceSeconds?: true
@@ -98,6 +103,7 @@ export type UserMaxAggregateInputType = {
 export type UserCountAggregateInputType = {
   id?: true
   stackAuthId?: true
+  email?: true
   displayName?: true
   algorithmSeed?: true
   toleranceSeconds?: true
@@ -195,6 +201,7 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type UserGroupByOutputType = {
   id: string
   stackAuthId: string
+  email: string
   displayName: string | null
   algorithmSeed: string
   toleranceSeconds: number
@@ -228,6 +235,7 @@ export type UserWhereInput = {
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   id?: Prisma.StringFilter<"User"> | string
   stackAuthId?: Prisma.StringFilter<"User"> | string
+  email?: Prisma.StringFilter<"User"> | string
   displayName?: Prisma.StringNullableFilter<"User"> | string | null
   algorithmSeed?: Prisma.StringFilter<"User"> | string
   toleranceSeconds?: Prisma.IntFilter<"User"> | number
@@ -239,6 +247,7 @@ export type UserWhereInput = {
 export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   stackAuthId?: Prisma.SortOrder
+  email?: Prisma.SortOrder
   displayName?: Prisma.SortOrderInput | Prisma.SortOrder
   algorithmSeed?: Prisma.SortOrder
   toleranceSeconds?: Prisma.SortOrder
@@ -250,6 +259,7 @@ export type UserOrderByWithRelationInput = {
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   stackAuthId?: string
+  email?: string
   algorithmSeed?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
@@ -259,11 +269,12 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   lists?: Prisma.ListListRelationFilter
-}, "id" | "stackAuthId" | "algorithmSeed">
+}, "id" | "stackAuthId" | "email" | "algorithmSeed">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   stackAuthId?: Prisma.SortOrder
+  email?: Prisma.SortOrder
   displayName?: Prisma.SortOrderInput | Prisma.SortOrder
   algorithmSeed?: Prisma.SortOrder
   toleranceSeconds?: Prisma.SortOrder
@@ -282,6 +293,7 @@ export type UserScalarWhereWithAggregatesInput = {
   NOT?: Prisma.UserScalarWhereWithAggregatesInput | Prisma.UserScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"User"> | string
   stackAuthId?: Prisma.StringWithAggregatesFilter<"User"> | string
+  email?: Prisma.StringWithAggregatesFilter<"User"> | string
   displayName?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   algorithmSeed?: Prisma.StringWithAggregatesFilter<"User"> | string
   toleranceSeconds?: Prisma.IntWithAggregatesFilter<"User"> | number
@@ -292,6 +304,7 @@ export type UserScalarWhereWithAggregatesInput = {
 export type UserCreateInput = {
   id?: string
   stackAuthId: string
+  email: string
   displayName?: string | null
   algorithmSeed: string
   toleranceSeconds?: number
@@ -303,6 +316,7 @@ export type UserCreateInput = {
 export type UserUncheckedCreateInput = {
   id?: string
   stackAuthId: string
+  email: string
   displayName?: string | null
   algorithmSeed: string
   toleranceSeconds?: number
@@ -314,6 +328,7 @@ export type UserUncheckedCreateInput = {
 export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stackAuthId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   algorithmSeed?: Prisma.StringFieldUpdateOperationsInput | string
   toleranceSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -325,6 +340,7 @@ export type UserUpdateInput = {
 export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stackAuthId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   algorithmSeed?: Prisma.StringFieldUpdateOperationsInput | string
   toleranceSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -336,6 +352,7 @@ export type UserUncheckedUpdateInput = {
 export type UserCreateManyInput = {
   id?: string
   stackAuthId: string
+  email: string
   displayName?: string | null
   algorithmSeed: string
   toleranceSeconds?: number
@@ -346,6 +363,7 @@ export type UserCreateManyInput = {
 export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stackAuthId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   algorithmSeed?: Prisma.StringFieldUpdateOperationsInput | string
   toleranceSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -356,6 +374,7 @@ export type UserUpdateManyMutationInput = {
 export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stackAuthId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   algorithmSeed?: Prisma.StringFieldUpdateOperationsInput | string
   toleranceSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -366,6 +385,7 @@ export type UserUncheckedUpdateManyInput = {
 export type UserCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   stackAuthId?: Prisma.SortOrder
+  email?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   algorithmSeed?: Prisma.SortOrder
   toleranceSeconds?: Prisma.SortOrder
@@ -380,6 +400,7 @@ export type UserAvgOrderByAggregateInput = {
 export type UserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   stackAuthId?: Prisma.SortOrder
+  email?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   algorithmSeed?: Prisma.SortOrder
   toleranceSeconds?: Prisma.SortOrder
@@ -390,6 +411,7 @@ export type UserMaxOrderByAggregateInput = {
 export type UserMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   stackAuthId?: Prisma.SortOrder
+  email?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   algorithmSeed?: Prisma.SortOrder
   toleranceSeconds?: Prisma.SortOrder
@@ -443,6 +465,7 @@ export type UserUpdateOneRequiredWithoutListsNestedInput = {
 export type UserCreateWithoutListsInput = {
   id?: string
   stackAuthId: string
+  email: string
   displayName?: string | null
   algorithmSeed: string
   toleranceSeconds?: number
@@ -453,6 +476,7 @@ export type UserCreateWithoutListsInput = {
 export type UserUncheckedCreateWithoutListsInput = {
   id?: string
   stackAuthId: string
+  email: string
   displayName?: string | null
   algorithmSeed: string
   toleranceSeconds?: number
@@ -479,6 +503,7 @@ export type UserUpdateToOneWithWhereWithoutListsInput = {
 export type UserUpdateWithoutListsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stackAuthId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   algorithmSeed?: Prisma.StringFieldUpdateOperationsInput | string
   toleranceSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -489,6 +514,7 @@ export type UserUpdateWithoutListsInput = {
 export type UserUncheckedUpdateWithoutListsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stackAuthId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   algorithmSeed?: Prisma.StringFieldUpdateOperationsInput | string
   toleranceSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -530,6 +556,7 @@ export type UserCountOutputTypeCountListsArgs<ExtArgs extends runtime.Types.Exte
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   stackAuthId?: boolean
+  email?: boolean
   displayName?: boolean
   algorithmSeed?: boolean
   toleranceSeconds?: boolean
@@ -542,6 +569,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   stackAuthId?: boolean
+  email?: boolean
   displayName?: boolean
   algorithmSeed?: boolean
   toleranceSeconds?: boolean
@@ -552,6 +580,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   stackAuthId?: boolean
+  email?: boolean
   displayName?: boolean
   algorithmSeed?: boolean
   toleranceSeconds?: boolean
@@ -562,6 +591,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type UserSelectScalar = {
   id?: boolean
   stackAuthId?: boolean
+  email?: boolean
   displayName?: boolean
   algorithmSeed?: boolean
   toleranceSeconds?: boolean
@@ -569,7 +599,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "stackAuthId" | "displayName" | "algorithmSeed" | "toleranceSeconds" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "stackAuthId" | "email" | "displayName" | "algorithmSeed" | "toleranceSeconds" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   lists?: boolean | Prisma.User$listsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -585,6 +615,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     stackAuthId: string
+    email: string
     displayName: string | null
     /**
      * Unique seed for TOTP-style auth calculation
@@ -1023,6 +1054,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
 export interface UserFieldRefs {
   readonly id: Prisma.FieldRef<"User", 'String'>
   readonly stackAuthId: Prisma.FieldRef<"User", 'String'>
+  readonly email: Prisma.FieldRef<"User", 'String'>
   readonly displayName: Prisma.FieldRef<"User", 'String'>
   readonly algorithmSeed: Prisma.FieldRef<"User", 'String'>
   readonly toleranceSeconds: Prisma.FieldRef<"User", 'Int'>
