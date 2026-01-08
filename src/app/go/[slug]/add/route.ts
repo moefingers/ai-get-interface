@@ -29,25 +29,18 @@ const corsHeaders = {
 }
 
 // Helper to create HTML response with CORS (for AI readability)
-// Click anywhere to close the tab
 function successHtml(message: string, details?: string): NextResponse {
   return new NextResponse(
     `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>Success</title></head>
-<body style="background:#0d1117;color:#3fb950;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;cursor:pointer;">
+<body style="background:#0d1117;color:#3fb950;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
   <div style="text-align:center;">
     <h1 style="font-size:4rem;margin:0;">✓</h1>
     <h2>${message}</h2>
     ${details ? `<p style="color:#8b949e;">${details}</p>` : ''}
-    <p style="color:#8b949e;margin-top:2rem;font-size:0.875rem;">Done! Click anywhere to close</p>
+    <p style="color:#6e7681;margin-top:2rem;font-size:0.875rem;">You may close this tab.</p>
   </div>
-  <script>
-    document.body.addEventListener('click', () => {
-      window.open('', '_self', '');
-      window.close();
-    });
-  </script>
 </body>
 </html>`,
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' } }
