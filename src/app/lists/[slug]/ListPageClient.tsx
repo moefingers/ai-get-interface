@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
 import { AppShell, type UserList } from '@/components/layout'
 import { DraftEditor, ListSettingsTray, ListInputBar } from '@/components/lists'
+import { RowHider } from '@/components/ui'
 import { addItem, getListItems } from '@/app/lists/actions'
 import type { ListFieldDefinition } from '@/types/list-fields'
 import type { AiModel, AuthMethod } from '@/lib/ai-instructions'
@@ -213,6 +214,19 @@ interface ListContentProps {
 }
 
 function ListContent({ list, items, fields, isLoading }: ListContentProps) {
+  const [showItems, setShowItems] = useState(false)
+
+  // Trigger animation when items finish loading
+  useEffect(() => {
+    if (!isLoading && items.length > 0) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => setShowItems(true), 50)
+      return () => clearTimeout(timer)
+    } else {
+      setShowItems(false)
+    }
+  }, [isLoading, items.length])
+
   // Sort fields by order for display
   const sortedFields = [...fields].sort((a, b) => a.order - b.order)
 
@@ -234,44 +248,45 @@ function ListContent({ list, items, fields, isLoading }: ListContentProps) {
         ) : (
           <div className="space-y-2">
             {items.map((item) => (
-              <div
-                key={item.id}
-                className={cn(
-                  'p-4 rounded-lg',
-                  tw.bg.card,
-                  'border',
-                  tw.border.default
-                )}
-              >
-                {/* If fields defined, show structured content */}
-                {sortedFields.length > 0 ? (
-                  <div className="flex flex-wrap gap-4">
-                    {sortedFields.map((field) => (
-                      <div key={field.name} className="min-w-0">
-                        <span className={cn('text-xs', tw.text.muted)}>
-                          {field.label}
-                        </span>
-                        <div className={cn('font-medium', tw.text.primary)}>
-                          {item.content[field.name] ?? '—'}
+              <RowHider key={item.id} showWhen={showItems}>
+                <div
+                  className={cn(
+                    'p-4 rounded-lg',
+                    tw.bg.card,
+                    'border',
+                    tw.border.default
+                  )}
+                >
+                  {/* If fields defined, show structured content */}
+                  {sortedFields.length > 0 ? (
+                    <div className="flex flex-wrap gap-4">
+                      {sortedFields.map((field) => (
+                        <div key={field.name} className="min-w-0">
+                          <span className={cn('text-xs', tw.text.muted)}>
+                            {field.label}
+                          </span>
+                          <div className={cn('font-medium', tw.text.primary)}>
+                            {item.content[field.name] ?? '—'}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  /* Fallback: show raw content */
-                  <pre className={cn('text-sm', tw.text.primary)}>
-                    {JSON.stringify(item.content, null, 2)}
-                  </pre>
-                )}
+                      ))}
+                    </div>
+                  ) : (
+                    /* Fallback: show raw content */
+                    <pre className={cn('text-sm', tw.text.primary)}>
+                      {JSON.stringify(item.content, null, 2)}
+                    </pre>
+                  )}
 
-                {/* Metadata */}
-                <div className={cn('mt-2 text-xs flex gap-3', tw.text.muted)}>
-                  <span>{item.source}</span>
-                  <span>
-                    {new Date(item.createdAt).toLocaleString()}
-                  </span>
+                  {/* Metadata */}
+                  <div className={cn('mt-2 text-xs flex gap-3', tw.text.muted)}>
+                    <span>{item.source}</span>
+                    <span>
+                      {new Date(item.createdAt).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </RowHider>
             ))}
           </div>
         )}
