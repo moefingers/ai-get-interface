@@ -340,9 +340,10 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
                       name="ai-model"
                       value={model.value}
                       checked={form.aiModel === model.value}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setForm((prev) => ({ ...prev, aiModel: e.target.value as AiModel }))
-                      }
+                        setSetupSlide(1)
+                      }}
                       className="sr-only"
                     />
                     <div className="flex-1">
@@ -417,9 +418,7 @@ export function NewListModal({ open, onOpenChange, onSuccess }: NewListModalProp
             >
               Back
             </Button>
-            {setupSlide === 0 ? (
-              <Button onClick={() => setSetupSlide(1)}>Next</Button>
-            ) : (
+            {setupSlide === 1 && (
               <Button onClick={handleSubmit} disabled={isPending}>
                 {isPending ? 'Creating...' : 'Create List'}
               </Button>
