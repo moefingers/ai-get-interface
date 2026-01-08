@@ -54,7 +54,15 @@ function successHtml(message: string, details?: string): NextResponse {
       seconds--;
       if (seconds <= 0) {
         clearInterval(timer);
+        // Trick to allow window.close() on tabs not opened by script
+        window.open('', '_self', '');
         window.close();
+        // Fallback: if close failed, show message
+        setTimeout(() => {
+          countdownEl.textContent = 'Done! You can close this tab.';
+          cancelHintEl.style.display = 'none';
+          document.body.style.cursor = 'default';
+        }, 100);
       } else {
         countdownEl.textContent = 'Closing in ' + seconds + '...';
       }
