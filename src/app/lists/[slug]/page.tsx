@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { stackServerApp } from '@/stack/server'
 import { syncUser } from '@/lib/sync-user'
 import { getListBySlug, getUserLists } from '@/app/lists/actions'
@@ -26,7 +26,8 @@ export default async function ListPage({ params }: ListPageProps) {
   // Get the specific list by slug
   const list = await getListBySlug(slug)
   if (!list) {
-    notFound()
+    // Redirect to index if list not found
+    redirect('/')
   }
 
   // Get all lists for sidebar
