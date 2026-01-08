@@ -177,6 +177,10 @@ URL-encode all values (spaces become %20 or +).
 
 If I say "add milk to ${listName}", ${actionVerb}:
 ${domain}/go/${slug}/add?token=${token}&source=${model}&${fields[0]?.name || 'item'}=milk
+
+## Note
+
+The "token" parameter is for authentication - keep it private.
 `.trim()
 
     case 'chatgpt':
