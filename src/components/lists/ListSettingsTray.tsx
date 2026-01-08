@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { X, Copy, Check, ChevronDown, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
-import { RowHider } from '@/components/ui'
+import { RowHider, SlidingView, SlidingViewItem } from '@/components/ui'
 import type { UserList } from '@/components/layout'
 import {
   AI_MODELS,
@@ -209,72 +209,75 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
           </div>
 
           {/* Change Setup Section */}
-          <div className={cn('mb-6 p-4 rounded-lg border', tw.border.muted, tw.bg.card)}>
-            {showConvertConfirm ? (
-              <div className="space-y-3">
-                <div className={cn('flex items-start gap-2 text-sm', tw.text.warning)}>
-                  <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-                  <p>
-                    This will unpublish your list. Any AI assistants using the current instructions 
-                    will stop working until you re-publish and update their instructions.
-                  </p>
-                </div>
-                <div className="flex gap-2">
+          <div className={cn('mb-6 p-4 rounded-lg border overflow-hidden', tw.border.muted, tw.bg.card)}>
+            <SlidingView activeIndex={showConvertConfirm ? 1 : 0} viewCount={2}>
+              <SlidingViewItem>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={cn('text-sm font-medium', tw.text.primary)}>
+                      Need to change auth, slug, or fields?
+                    </p>
+                    <p className={cn('text-xs mt-0.5', tw.text.muted)}>
+                      Convert back to draft to make instruction breaking changes
+                    </p>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => setShowConvertConfirm(false)}
-                    disabled={isPending}
+                    onClick={() => setShowConvertConfirm(true)}
                     className={cn(
                       'px-3 py-1.5 rounded-lg text-sm',
+                      tw.bg.hover,
                       tw.text.secondary,
                       tw.hover.bg.subtle,
+                      tw.hover.text.primary,
                       'transition-colors'
                     )}
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleConvertToDraft}
-                    disabled={isPending}
-                    className={cn(
-                      'px-3 py-1.5 rounded-lg text-sm',
-                      tw.bg.error,
-                      'text-white',
-                      'hover:opacity-90',
-                      'transition-colors'
-                    )}
-                  >
-                    {isPending ? 'Converting...' : 'Convert to Draft'}
+                    Change Setup
                   </button>
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={cn('text-sm font-medium', tw.text.primary)}>
-                    Need to change auth, slug, or fields?
-                  </p>
-                  <p className={cn('text-xs mt-0.5', tw.text.muted)}>
-                    Convert back to draft to make instruction breaking changes
-                  </p>
+              </SlidingViewItem>
+              <SlidingViewItem>
+                <div className="space-y-3">
+                  <div className={cn('flex items-start gap-2 text-sm', tw.text.warning)}>
+                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                    <p>
+                      This will unpublish your list. Any AI assistants using the current instructions 
+                      will stop working until you re-publish and update their instructions.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowConvertConfirm(false)}
+                      disabled={isPending}
+                      className={cn(
+                        'px-3 py-1.5 rounded-lg text-sm',
+                        tw.text.secondary,
+                        tw.hover.bg.subtle,
+                        'transition-colors'
+                      )}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleConvertToDraft}
+                      disabled={isPending}
+                      className={cn(
+                        'px-3 py-1.5 rounded-lg text-sm',
+                        tw.bg.error,
+                        'text-white',
+                        'hover:opacity-90',
+                        'transition-colors'
+                      )}
+                    >
+                      {isPending ? 'Converting...' : 'Convert to Draft'}
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowConvertConfirm(true)}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-sm',
-                    tw.bg.hover,
-                    tw.text.secondary,
-                    tw.hover.bg.subtle,
-                    tw.hover.text.primary,
-                    'transition-colors'
-                  )}
-                >
-                  Change Setup
-                </button>
-              </div>
-            )}
+              </SlidingViewItem>
+            </SlidingView>
           </div>
 
           {/* AI Instructions Section */}
