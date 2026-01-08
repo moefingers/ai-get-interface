@@ -202,7 +202,7 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                   )}
                 >
                   <span>{list.name}</span>
-                  <Pencil className={cn('w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity', tw.text.muted)} />
+                  <Pencil className={cn('w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity', tw.text.primary)} />
                 </button>
               )}
             </div>
@@ -233,7 +233,9 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                 Fields
               </label>
               <p className={cn('text-sm px-2 py-1', tw.text.secondary)}>
-                {fields.length} field{fields.length !== 1 ? 's' : ''} configured
+                {fields.length > 0 
+                  ? fields.map(f => f.label || f.name).join(', ')
+                  : 'No fields configured'}
               </p>
             </div>
           </div>
