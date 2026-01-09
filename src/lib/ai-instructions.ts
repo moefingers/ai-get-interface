@@ -177,6 +177,8 @@ URL-encode all values (spaces become %20 or +).
 
 If I say "add milk to ${listName}", ${actionVerb}:
 ${domain}/go/${slug}/add?token=${token}&source=${model}&1=milk
+
+The static token above is not sensitive - it's safe to store.
 `.trim()
 
     case 'chatgpt':
