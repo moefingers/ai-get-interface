@@ -94,7 +94,7 @@ export function Sidebar({
       )}
       
       {/* Sidebar with ColumnHider for smooth collapse */}
-      <ColumnHider showWhen={isOpen} className={cn('h-screen', isMobile && 'z-40')}>
+      <ColumnHider showWhen={isOpen} className={cn('h-dvh', isMobile && 'z-40')}>
         <aside
           className={cn(
             'h-full w-65 flex flex-col',
@@ -210,7 +210,7 @@ export function Sidebar({
         'shrink-0',
         isMobile 
           ? 'fixed top-3 left-3 z-50' 
-          : 'h-screen'
+          : 'h-dvh'
       )}>
         <div className={cn(!isMobile && 'sticky top-3 ml-3')}>
           <SidebarToggle isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)} />

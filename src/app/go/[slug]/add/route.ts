@@ -34,7 +34,7 @@ function successHtml(message: string, details?: string): NextResponse {
     `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>Success</title></head>
-<body style="background:#0d1117;color:#3fb950;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+<body style="background:#0d1117;color:#3fb950;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100dvh;margin:0;">
   <div style="text-align:center;">
     <h1 style="font-size:4rem;margin:0;">✓</h1>
     <h2>${message}</h2>
@@ -52,7 +52,7 @@ function errorHtml(message: string, details?: string, status: number = 400): Nex
     `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>Error</title></head>
-<body style="background:#0d1117;color:#f85149;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+<body style="background:#0d1117;color:#f85149;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100dvh;margin:0;">
   <div style="text-align:center;">
     <h1 style="font-size:4rem;margin:0;">✗</h1>
     <h2>${message}</h2>
