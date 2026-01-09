@@ -159,8 +159,8 @@ function generateTokenInstructions(
   switch (model) {
     case 'gemini':
       // Compact format - Gemini strips markdown anyway
-      // Includes confirmation step because Gemini can't execute tools on initial request
-      return `When I mention "${listName}" or ask to add something to it, first respond ONLY with "${listName}, [field values comma separated]?" for confirmation. When I confirm, ${actionStepsCompact}.
+      // Build URL first, then prompt for confirmation (Gemini can't execute tools on initial request)
+      return `When I mention "${listName}" or ask to add something to it, build the URL with field values, then respond ONLY with "${listName}, [field values comma separated]?" for confirmation. When I confirm, use the "browsing" tool on the URL and tell me the response verbatim.
 URL: GET ${url}
 Fields:
 ${fieldDefs}
