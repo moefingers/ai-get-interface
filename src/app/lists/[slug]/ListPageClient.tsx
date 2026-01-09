@@ -11,7 +11,7 @@ import { RowHider, ColumnHider } from '@/components/ui'
 import { addItem, getListItems, deleteItem } from '@/app/lists/actions'
 import type { ListFieldDefinition } from '@/types/list-fields'
 import type { AiModel, AuthMethod } from '@/lib/ai-instructions'
-import { Settings, Trash2 } from 'lucide-react'
+import { Settings, Trash2, Menu } from 'lucide-react'
 
 interface ListItemData {
   id: string
@@ -392,7 +392,35 @@ function ListContent({ list, items, fields, isLoading, onItemDeleted }: ListCont
           <h1 className={cn('text-2xl font-bold', tw.text.primary)}>
             {list.name}
           </h1>
-          <div className="flex items-center gap-2">
+          
+          {/* CSS-only responsive menu */}
+          <input type="checkbox" id="filter-menu" className="peer hidden" />
+          
+          {/* Hamburger - visible only on narrow screens */}
+          <label
+            htmlFor="filter-menu"
+            className={cn(
+              'sm:hidden flex items-center justify-center w-10 h-10 rounded-lg cursor-pointer',
+              tw.bg.card,
+              'border',
+              tw.border.default,
+              tw.text.primary,
+              tw.hover.bg.subtle
+            )}
+          >
+            <Menu className="w-5 h-5" />
+          </label>
+          
+          {/* Buttons - hidden on narrow until hamburger checked */}
+          <div className={cn(
+            'hidden sm:flex items-center gap-2',
+            'peer-checked:flex peer-checked:absolute peer-checked:right-8 peer-checked:top-20',
+            'peer-checked:flex-col peer-checked:items-end peer-checked:gap-1',
+            'peer-checked:p-2 peer-checked:rounded-lg',
+            'peer-checked:bg-background/90 peer-checked:backdrop-blur-md',
+            'peer-checked:border peer-checked:shadow-lg',
+            tw.border.default
+          )}>
             {/* Sort field toggle */}
             <button
               onClick={cycleSortField}
