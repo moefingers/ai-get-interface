@@ -255,7 +255,7 @@ function getActionSteps(style: InstructionStyle, _url: string): string {
     case 'fetch':
       return `1. Build the URL below with the item values
 2. Fetch the URL
-3. Tell me what the response says`
+3. Reply with the page content`
     case 'link':
       return `1. Build the URL below with the item values
 2. Provide me a clickable link to open
