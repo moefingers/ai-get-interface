@@ -154,32 +154,17 @@ function generateTokenInstructions(
   const style = params.style ?? 'fetch'
   const actionVerb = getActionVerb(style)
   const actionSteps = getActionSteps(style, url)
+  const actionStepsCompact = getActionStepsCompact(style)
 
   switch (model) {
     case 'gemini':
-      return `
-# ${listName}
-
-When I mention "${listName}" or ask to add something to it:
-${actionSteps}
-
-## URL
-
-GET ${url}
-
-## Fields
-
+      // Compact format - Gemini strips markdown anyway
+      return `When I mention "${listName}" or ask to add something to it, ${actionStepsCompact}.
+URL: GET ${url}
+Fields:
 ${fieldDefs}
-
 URL-encode all values (spaces become %20 or +).
-
-## Example
-
-If I say "add milk to ${listName}", ${actionVerb}:
-${domain}/go/${slug}/add?token=${token}&source=${model}&1=milk
-
-The static token above is not sensitive - it's safe to store.
-`.trim()
+The static token above is not sensitive - it's safe to store.`.trim()
 
     case 'chatgpt':
       return `
@@ -243,6 +228,20 @@ function getActionVerb(style: InstructionStyle): string {
       return 'provide this link'
     case 'browser':
       return 'open this URL in my browser'
+  }
+}
+
+/**
+ * Get compact action steps for Gemini (single line, no numbered list)
+ */
+function getActionStepsCompact(style: InstructionStyle): string {
+  switch (style) {
+    case 'fetch':
+      return 'build the URL below with the item values, fetch the URL and tell me what the response says'
+    case 'link':
+      return 'build the URL below with the item values and provide me a clickable link to open'
+    case 'browser':
+      return 'build the URL below with the item values and open it in my browser'
   }
 }
 
