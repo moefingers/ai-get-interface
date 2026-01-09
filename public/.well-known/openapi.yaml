@@ -1,0 +1,64 @@
+openapi: 3.0.0
+info:
+  title: AI Get Interface API
+  description: Add items to user lists via AI assistants
+  version: 1.0.0
+servers:
+  - url: https://ai-get-interface.vercel.app
+paths:
+  /go/{slug}/add:
+    get:
+      operationId: addItemToList
+      summary: Add an item to a list
+      description: Adds an item with the specified field values to the user's list
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The list slug/identifier
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authentication token for the list
+        - name: source
+          in: query
+          required: false
+          schema:
+            type: string
+            default: chatgpt
+          description: Source AI assistant
+        - name: "1"
+          in: query
+          required: false
+          schema:
+            type: string
+          description: First field value
+        - name: "2"
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Second field value
+        - name: "3"
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Third field value
+      responses:
+        "200":
+          description: Item added successfully
+          content:
+            text/html:
+              schema:
+                type: string
+        "400":
+          description: Validation error
+        "401":
+          description: Authentication failed
+        "404":
+          description: List not found

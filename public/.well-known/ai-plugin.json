@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "AI Get Interface",
+  "name_for_model": "ai_get_interface",
+  "description_for_human": "Add items to your lists via AI assistants",
+  "description_for_model": "Allows users to add items to their personal lists. When the user asks to add something to a list, construct the URL with the appropriate parameters and fetch it.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://ai-get-interface.vercel.app/.well-known/openapi.yaml"
+  },
+  "logo_url": "https://ai-get-interface.vercel.app/icon.png",
+  "contact_email": "support@example.com",
+  "legal_info_url": "https://ai-get-interface.vercel.app/terms"
+}
