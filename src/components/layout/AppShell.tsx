@@ -22,7 +22,7 @@ export function AppShell({
   loadingListId,
 }: AppShellProps) {
   return (
-    <div className={cn('min-h-screen flex', tw.bg.main)}>
+    <div className={cn('h-screen flex overflow-hidden', tw.bg.main)}>
       <Sidebar 
         lists={lists}
         selectedListId={selectedListId}
@@ -30,7 +30,7 @@ export function AppShell({
         onListCreated={onListCreated}
         loadingListId={loadingListId}
       />
-      <main className="flex-1 min-h-screen flex flex-col">
+      <main className="flex-1 h-screen flex flex-col overflow-hidden">
         {children}
       </main>
     </div>

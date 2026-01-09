@@ -231,8 +231,8 @@ function ListContent({ list, items, fields, isLoading }: ListContentProps) {
   const sortedFields = [...fields].sort((a, b) => a.order - b.order)
 
   return (
-    <div className="flex-1 flex flex-col p-8 overflow-y-auto">
-      <div className="max-w-3xl mx-auto w-full">
+    <div className="flex-1 min-h-0 flex flex-col p-8 overflow-y-auto">
+      <div className="max-w-3xl mx-auto w-full pb-4">
         <h1 className={cn('text-2xl font-bold mb-6', tw.text.primary)}>
           {list.name}
         </h1>
