@@ -233,11 +233,12 @@ function getActionVerb(style: InstructionStyle): string {
 
 /**
  * Get compact action steps for Gemini (single line, no numbered list)
+ * Uses "browsing tool" phrasing which Gemini responds to better
  */
 function getActionStepsCompact(style: InstructionStyle): string {
   switch (style) {
     case 'fetch':
-      return 'build the URL below with the item values, fetch the URL and tell me what the response says'
+      return 'build the URL below with the item values, use the "browsing" tool the URL and tell me what the response says verbatim'
     case 'link':
       return 'build the URL below with the item values and provide me a clickable link to open'
     case 'browser':
