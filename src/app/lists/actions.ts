@@ -649,6 +649,51 @@ export interface ConvertToDraftError {
   error: string
 }
 
+// ============================================
+// DELETE ITEM
+// ============================================
+
+export interface DeleteItemResult {
+  success: true
+}
+
+export interface DeleteItemError {
+  success: false
+  error: string
+}
+
+export type DeleteItemResponse = DeleteItemResult | DeleteItemError
+
+/**
+ * Deletes an item from a list
+ */
+export async function deleteItem(itemId: string): Promise<DeleteItemResponse> {
+  const user = await syncUser()
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  // Find the item and verify ownership through list
+  const item = await prisma.listItem.findFirst({
+    where: { id: itemId },
+    include: { list: { select: { userId: true } } },
+  })
+
+  if (!item) {
+    return { success: false, error: 'Item not found' }
+  }
+
+  if (item.list.userId !== user.id) {
+    return { success: false, error: 'Not authorized' }
+  }
+
+  await prisma.listItem.delete({
+    where: { id: itemId },
+  })
+
+  return { success: true }
+}
+
 export type ConvertToDraftResponse = ConvertToDraftResult | ConvertToDraftError
 
 /**

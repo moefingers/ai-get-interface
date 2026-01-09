@@ -8,10 +8,10 @@ import { tw } from '@/lib/tw-theme'
 import { AppShell, type UserList } from '@/components/layout'
 import { DraftEditor, ListSettingsTray, ListInputBar } from '@/components/lists'
 import { RowHider, ColumnHider } from '@/components/ui'
-import { addItem, getListItems } from '@/app/lists/actions'
+import { addItem, getListItems, deleteItem } from '@/app/lists/actions'
 import type { ListFieldDefinition } from '@/types/list-fields'
 import type { AiModel, AuthMethod } from '@/lib/ai-instructions'
-import { Settings } from 'lucide-react'
+import { Settings, Trash2 } from 'lucide-react'
 
 interface ListItemData {
   id: string
@@ -84,6 +84,11 @@ export function ListPageClient({ userName, currentList, allLists }: ListPageClie
     )
     router.refresh()
   }, [currentList.id, router])
+
+  const handleItemDeleted = useCallback((itemId: string) => {
+    // Remove item from local state immediately for responsive UI
+    setItems((prev) => prev.filter((item) => item.id !== itemId))
+  }, [])
 
   const handleDraftPublished = useCallback((newSlug: string) => {
     // Navigate to the new slug after publishing
@@ -180,6 +185,7 @@ export function ListPageClient({ userName, currentList, allLists }: ListPageClie
           items={items}
           fields={fields}
           isLoading={isLoadingItems}
+          onItemDeleted={handleItemDeleted}
         />
       )}
 
@@ -212,12 +218,71 @@ interface ListContentProps {
   items: ListItemData[]
   fields: ListFieldDefinition[]
   isLoading: boolean
+  onItemDeleted: (itemId: string) => void
+}
+
+// Delete button with confirmation state
+function DeleteButton({ itemId, onDeleted }: { itemId: string; onDeleted: () => void }) {
+  const [isConfirming, setIsConfirming] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  // Auto-revert after 3 seconds
+  useEffect(() => {
+    if (isConfirming) {
+      const timer = setTimeout(() => setIsConfirming(false), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [isConfirming])
+
+  const handleClick = async () => {
+    if (!isConfirming) {
+      setIsConfirming(true)
+      return
+    }
+    
+    // Second click - delete
+    setIsDeleting(true)
+    const result = await deleteItem(itemId)
+    if (result.success) {
+      onDeleted()
+    } else {
+      setIsDeleting(false)
+      setIsConfirming(false)
+    }
+  }
+
+  const handleBlur = () => {
+    if (isConfirming && !isDeleting) {
+      setIsConfirming(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      onBlur={handleBlur}
+      disabled={isDeleting}
+      className={cn(
+        'flex items-center gap-1 px-2 py-1 rounded transition-colors',
+        isConfirming
+          ? 'text-red-500 hover:text-red-600'
+          : cn(tw.text.muted, 'hover:text-gray-500')
+      )}
+    >
+      <Trash2 className="w-4 h-4" />
+      <ColumnHider showWhen={isConfirming}>
+        <span className="text-xs whitespace-nowrap">
+          {isDeleting ? 'Deleting...' : 'Delete item?'}
+        </span>
+      </ColumnHider>
+    </button>
+  )
 }
 
 type TimeFilter = 'today' | '24h' | 'all'
 type SortDirection = 'desc' | 'asc'
 
-function ListContent({ list, items, fields, isLoading }: ListContentProps) {
+function ListContent({ list, items, fields, isLoading, onItemDeleted }: ListContentProps) {
   const [showItems, setShowItems] = useState(false)
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('today')
   const [sortField, setSortField] = useState<string>('time') // 'time', field names, or 'source'
@@ -443,34 +508,40 @@ function ListContent({ list, items, fields, isLoading }: ListContentProps) {
                           tw.border.default
                         )}
                       >
-                  {/* If fields defined, show structured content */}
-                  {sortedFields.length > 0 ? (
-                    <div className="flex flex-wrap gap-4">
-                      {sortedFields.map((field) => (
-                        <div key={field.name} className="min-w-0">
-                          <span className={cn('text-xs', tw.text.muted)}>
-                            {field.label}
-                          </span>
-                          <div className={cn('font-medium', tw.text.primary)}>
-                            {item.content[field.name] ?? '—'}
+                        {/* If fields defined, show structured content */}
+                        {sortedFields.length > 0 ? (
+                          <div className="flex flex-wrap gap-4">
+                            {sortedFields.map((field) => (
+                              <div key={field.name} className="min-w-0">
+                                <span className={cn('text-xs', tw.text.muted)}>
+                                  {field.label}
+                                </span>
+                                <div className={cn('font-medium', tw.text.primary)}>
+                                  {item.content[field.name] ?? '—'}
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    /* Fallback: show raw content */
-                    <pre className={cn('text-sm', tw.text.primary)}>
-                      {JSON.stringify(item.content, null, 2)}
-                    </pre>
-                  )}
+                        ) : (
+                          /* Fallback: show raw content */
+                          <pre className={cn('text-sm', tw.text.primary)}>
+                            {JSON.stringify(item.content, null, 2)}
+                          </pre>
+                        )}
 
-                  {/* Metadata */}
-                  <div className={cn('mt-2 text-xs flex gap-3', tw.text.muted)}>
-                    <span>{item.source}</span>
-                    <span>
-                      {new Date(item.createdAt).toLocaleString()}
-                    </span>
-                  </div>
+                        {/* Metadata and actions */}
+                        <div className={cn('mt-2 text-xs flex items-center justify-between', tw.text.muted)}>
+                          <div className="flex gap-3">
+                            <span>{item.source}</span>
+                            <span>
+                              {new Date(item.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                          <DeleteButton 
+                            itemId={item.id} 
+                            onDeleted={() => onItemDeleted(item.id)} 
+                          />
+                        </div>
                       </div>
                     </RowHider>
                   </motion.div>
