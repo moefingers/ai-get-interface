@@ -1,21 +1,43 @@
-![AI Get Idea](./MARKDOWN/REFERENCE/ai-get-idea.png)
+![AI-Triggered List Management](./MARKDOWN/REFERENCE/refined-diagram.png)
 
 # AI GET Interface
 
-A time-based authentication system that integrates with AI assistants (Gemini/ChatGPT) to manage dynamic work lists through natural language triggers.
+A list management app where AI assistants (Gemini, ChatGPT, Google Assistant) append items via authenticated GET requests. Users create lists, configure fields, and receive generated instructions to paste into their AI assistant's memory.
 
-## Overview
+## How It Works
 
-This project creates an interface between AI assistants and a backend server that uses time-based authentication to securely manage work lists. When users mention a list name in their AI assistant, it triggers a workflow that calculates authentication tokens based on the current time and validates them server-side before appending new tasks.
+Tell your AI assistant something like *"Add milk to my grocery list"* — it constructs and calls:
 
-## Key Features
+```
+GET /go/groceries/add?t=abc123&item=Milk&qty=2
+```
 
-- **Natural Language Triggers**: Simply mention your list name (e.g., "work list") in your AI assistant
-- **Time-Based Authentication**: Uses UNIX timestamps combined with tokens for secure, dynamic authentication
-- **Automatic Data Extraction**: AI extracts relevant data from your prompts including:
-  - Task description (earpiece)
-  - Date and time information
-  - URL slugs for list identification
-- **Server Validation**: Backend validates time-based auth codes before modifying lists
-- **Daily List Management**: Creates new lists with "Title + Date" format, appending time-stamped entries
-- **Multi-Platform Support**: Works with both Gemini and ChatGPT through custom instructions/memory settings
+The server validates auth, appends the item, and your list updates instantly.
+
+## Authentication Methods
+
+| Method | Description |
+|--------|-------------|
+| **Static Token** | Per-list token included in URL — simple, works everywhere |
+| **Session Auth** | No token needed — user must be logged into the web app |
+| **Time-Based HMAC** | *Planned* — stronger security via rolling codes ([constraints](MARKDOWN/REFERENCE/SECURITY_PROBLEM_CONSTRAINTS.md)) |
+
+## Supported AI Platforms
+
+- **Gemini** → Saved Info
+- **ChatGPT** → Memory / Custom Instructions  
+- **Google Assistant** → Routines
+
+## Frontend Features
+
+- Chat-style collapsible sidebar (à la ChatGPT/Gemini)
+- Draft → publish list creation workflow
+- Custom field definitions (text/number, required/optional)
+- Auto-generated copy-paste instructions per AI platform
+- Manual item entry and inline deletion
+- Sort by any field, filter by time (Today / 24h / All)
+
+## Tech Stack
+
+Next.js 16 · React 19 · Prisma 7 + Neon · Tailwind 4 · Stack Auth
+
