@@ -49,7 +49,11 @@ const toInternalFields = (fields: ListFieldDefinition[]): InternalField[] =>
 const toExternalFields = (fields: InternalField[]): ListFieldDefinition[] =>
   fields
     .filter((f) => !f._leaving)
-    .map(({ _id, _leaving, ...rest }) => rest)
+    .map(({ _id, _leaving, ...rest }, index) => ({
+      ...rest,
+      name: String(index + 1), // Always use numeric names: 1, 2, 3
+      order: index,
+    }))
 
 export function DraftEditor({
   listId,
@@ -74,7 +78,7 @@ export function DraftEditor({
     toInternalFields(
       initialFields.length > 0 
         ? initialFields 
-        : [{ name: 'item', label: 'Item', type: 'text', required: true, order: 0 }]
+        : [{ name: '1', label: 'Item', type: 'text', required: true, order: 0 }]
     )
   )
   const [authMethod, setAuthMethod] = useState<AuthMethod>(initialAuthMethod || 'token')
@@ -151,18 +155,20 @@ export function DraftEditor({
 
   const addField = () => {
     const newId = generateFieldId()
+    const nextOrder = fields.filter((f) => !f._leaving).length
     
     // Add field in "leaving" state initially (hidden)
+    // Name will be set to numeric index by toExternalFields
     setFields((prev) => [
       ...prev,
       {
         _id: newId,
         _leaving: true, // Start hidden for animation
-        name: '',
+        name: String(nextOrder + 1), // Temporary, recalculated on export
         label: '',
         type: 'text' as FieldType,
         required: true,
-        order: prev.filter((f) => !f._leaving).length,
+        order: nextOrder,
       },
     ])
 
@@ -196,14 +202,9 @@ export function DraftEditor({
     setFields((prev) =>
       prev.map((f, i) => {
         if (i !== index) return f
-        const updated = { ...f, ...updates }
-        if (updates.label && !f.name) {
-          updated.name = updates.label
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '_')
-            .replace(/^_|_$/g, '')
-        }
-        return updated
+        // Name is always numeric (set by toExternalFields), only update label/type/required
+        const { name: _ignoreName, ...safeUpdates } = updates
+        return { ...f, ...safeUpdates }
       })
     )
   }

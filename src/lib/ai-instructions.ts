@@ -139,14 +139,14 @@ function generateTokenInstructions(
 ): string {
   const { listName, slug, token, domain, fields } = params
   
-  // Build field params string
+  // Build field params string using numeric names (1, 2, 3)
   const fieldParams = fields
     .map((f) => `${f.name}={${f.label}${f.required ? '' : ', optional'}}`)
     .join('&')
   
-  // Build field definitions for instructions
+  // Build field definitions with clear number = label format
   const fieldDefs = fields
-    .map((f) => `- ${f.name} (${f.required ? 'required' : 'optional'}): ${f.label} [${f.type}]`)
+    .map((f) => `- ${f.name} = ${f.label} (${f.type}${f.required ? ', required' : ''})`)
     .join('\n')
 
   const url = `${domain}/go/${slug}/add?token=${token}&source=${model}&${fieldParams}`
@@ -176,7 +176,7 @@ URL-encode all values (spaces become %20 or +).
 ## Example
 
 If I say "add milk to ${listName}", ${actionVerb}:
-${domain}/go/${slug}/add?token=${token}&source=${model}&${fields[0]?.name || 'item'}=milk
+${domain}/go/${slug}/add?token=${token}&source=${model}&1=milk
 `.trim()
 
     case 'chatgpt':
@@ -199,7 +199,7 @@ URL-encode all values (spaces become %20 or +).
 ## Example
 
 If I say "add milk to ${listName}", ${actionVerb}:
-${domain}/go/${slug}/add?token=${token}&source=${model}&${fields[0]?.name || 'item'}=milk
+${domain}/go/${slug}/add?token=${token}&source=${model}&1=milk
 `.trim()
 
     case 'google-assistant':
@@ -274,14 +274,14 @@ function generateSessionInstructions(
 ): string {
   const { listName, slug, domain, fields } = params
   
-  // Build field params string (no token needed - session auth)
+  // Build field params string using numeric names (1, 2, 3)
   const fieldParams = fields
     .map((f) => `${f.name}={${f.label}${f.required ? '' : ', optional'}}`)
     .join('&')
   
-  // Build field definitions for instructions
+  // Build field definitions with clear number = label format
   const fieldDefs = fields
-    .map((f) => `- ${f.name} (${f.required ? 'required' : 'optional'}): ${f.label} [${f.type}]`)
+    .map((f) => `- ${f.name} = ${f.label} (${f.type}${f.required ? ', required' : ''})`)
     .join('\n')
 
   const url = `${domain}/go/${slug}/add?source=${model}&${fieldParams}`
@@ -313,7 +313,7 @@ URL-encode all values (spaces become %20 or +).
 ## Example
 
 If I say "add milk to ${listName}", ${actionVerb}:
-${domain}/go/${slug}/add?source=${model}&${fields[0]?.name || 'item'}=milk
+${domain}/go/${slug}/add?source=${model}&1=milk
 
 ${sessionNote}
 `.trim()
@@ -338,7 +338,7 @@ URL-encode all values (spaces become %20 or +).
 ## Example
 
 If I say "add milk to ${listName}", ${actionVerb}:
-${domain}/go/${slug}/add?source=${model}&${fields[0]?.name || 'item'}=milk
+${domain}/go/${slug}/add?source=${model}&1=milk
 
 ${sessionNote}
 `.trim()
