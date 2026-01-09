@@ -411,16 +411,26 @@ function ListContent({ list, items, fields, isLoading, onItemDeleted }: ListCont
             <Menu className="w-5 h-5" />
           </label>
           
-          {/* Buttons - hidden on narrow until hamburger checked */}
+          {/* Buttons - animated dropdown on mobile, always visible on desktop */}
           <div className={cn(
-            'hidden sm:flex items-center gap-2',
-            'peer-checked:flex peer-checked:absolute peer-checked:right-8 peer-checked:top-20',
-            'peer-checked:flex-col peer-checked:items-end peer-checked:gap-1',
-            'peer-checked:p-2 peer-checked:rounded-lg',
-            'peer-checked:bg-background/90 peer-checked:backdrop-blur-md',
-            'peer-checked:border peer-checked:shadow-lg',
-            tw.border.default
+            // Mobile: positioned dropdown with grid animation
+            'absolute right-4 top-16 z-10',
+            'grid transition-[grid-template-rows] duration-200',
+            'grid-rows-[0fr] peer-checked:grid-rows-[1fr]',
+            // Desktop: in-flow, always visible
+            'sm:relative sm:right-auto sm:top-auto',
+            'sm:grid-rows-[1fr]'
           )}>
+            <div className="overflow-hidden sm:overflow-visible">
+              <div className={cn(
+                // Mobile: vertical stack with card styling
+                'flex flex-col items-end gap-1 p-2 rounded-lg',
+                'bg-background/90 backdrop-blur-md border shadow-lg',
+                tw.border.default,
+                // Desktop: horizontal row, no card styling
+                'sm:flex-row sm:items-center sm:gap-2 sm:p-0',
+                'sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:shadow-none sm:rounded-none'
+              )}>
             {/* Sort field toggle */}
             <button
               onClick={cycleSortField}
@@ -500,6 +510,8 @@ function ListContent({ list, items, fields, isLoading, onItemDeleted }: ListCont
                 <span className="whitespace-nowrap">All</span>
               </ColumnHider>
             </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
