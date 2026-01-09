@@ -191,8 +191,10 @@ export async function GET(
     const existingContent = JSON.stringify(duplicate.content)
     if (existingContent === contentJson) {
       console.log(`[GO] Duplicate detected for list ${slug}, skipping`)
+      // Map numeric keys to field labels for display
+      const fieldLabelMap = Object.fromEntries(fields.map(f => [f.name, f.label]))
       const contentPreview = Object.entries(validation.data)
-        .map(([k, v]) => `${k}=${v}`)
+        .map(([k, v]) => `${fieldLabelMap[k] || k}: ${v}`)
         .join(', ')
       return successHtml('Item already exists', `Duplicate skipped: ${contentPreview}`)
     }
@@ -209,8 +211,10 @@ export async function GET(
 
   console.log(`[GO] Item added to list ${slug} from ${source}`)
 
+  // Map numeric keys to field labels for display
+  const fieldLabelMap = Object.fromEntries(fields.map(f => [f.name, f.label]))
   const contentPreview = Object.entries(item.content as Record<string, unknown>)
-    .map(([k, v]) => `${k}=${v}`)
+    .map(([k, v]) => `${fieldLabelMap[k] || k}: ${v}`)
     .join(', ')
   return successHtml(`Added to ${list.name}`, contentPreview)
 }
