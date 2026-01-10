@@ -508,9 +508,9 @@ function StyleSelector({ styles, selected, onChange }: StyleSelectorProps) {
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          {/* Dropdown */}
+          {/* Dropup - opens above the button */}
           <div className={cn(
-            'absolute top-full left-0 mt-1 py-1 rounded-lg border shadow-lg z-20 min-w-44',
+            'absolute bottom-full left-0 mb-1 py-1 rounded-lg border shadow-lg z-20 min-w-44',
             tw.bg.elevated,
             tw.border.default
           )}>
