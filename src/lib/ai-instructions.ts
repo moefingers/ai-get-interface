@@ -212,9 +212,13 @@ ${tokenNote}`.trim()
     case 'link':
       return `When I mention "${listName}" or ask to add something to it:
 1. Build the URL with my values
-2. Give me a clickable link (do NOT fetch it yourself)
+2. Give me the URL inside a code block (NOT as a clickable link)
+3. Tell me to copy the URL, open browser, and paste
 
-URL Template: ${url}
+URL Template:
+\`\`\`
+${url}
+\`\`\`
 
 Fields:
 ${fieldDefs}
@@ -328,9 +332,13 @@ function generateSessionInstructions(
       if (style === 'link') {
         return `When I mention "${listName}" or ask to add something to it:
 1. Build the URL with my values
-2. Give me a clickable link (do NOT open it yourself)
+2. Give me the URL inside a code block (NOT as a clickable link)
+3. Tell me to copy the URL, open browser, and paste
 
-URL Template: ${url}
+URL Template:
+\`\`\`
+${url}
+\`\`\`
 
 Fields:
 ${fieldDefs}

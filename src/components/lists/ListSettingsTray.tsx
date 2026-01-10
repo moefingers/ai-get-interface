@@ -428,6 +428,27 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
               </div>
             </RowHider>
 
+            {/* Gemini link warning */}
+            <RowHider showWhen={selectedModel === 'gemini' && selectedStyle === 'link'}>
+              <div className={cn(
+                'mb-3 px-3 py-2 rounded-lg border text-xs',
+                tw.border.warning,
+                tw.bg.warningMuted,
+                tw.text.warning
+              )}>
+                <span>Gemini links redirect to Google search. Copy/paste URL instead. </span>
+                <a
+                  href="https://github.com/moefingers/ai-get-interface/issues/4"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn('inline-flex items-center gap-1 underline', tw.hover.text.primary)}
+                >
+                  Known issue #4
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </RowHider>
+
             {/* Instructions preview */}
             <div className={cn('rounded-lg border', tw.border.default, tw.bg.main)}>
               <pre className={cn(
