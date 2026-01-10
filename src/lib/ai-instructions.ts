@@ -213,7 +213,7 @@ ${tokenNote}`.trim()
       return `When I mention "${listName}" or ask to add something to it:
 1. Build the URL with my values
 2. Give me the URL inside a code block (NOT as a clickable link)
-3. Tell me to copy the URL, open browser, and paste
+3. Tell me to select and open the URL, or copy and paste it into my browser
 
 URL Template:
 \`\`\`
@@ -333,7 +333,7 @@ function generateSessionInstructions(
         return `When I mention "${listName}" or ask to add something to it:
 1. Build the URL with my values
 2. Give me the URL inside a code block (NOT as a clickable link)
-3. Tell me to copy the URL, open browser, and paste
+3. Tell me to select and open the URL, or copy and paste it into my browser
 
 URL Template:
 \`\`\`

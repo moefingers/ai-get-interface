@@ -436,7 +436,7 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
                 tw.bg.warningMuted,
                 tw.text.warning
               )}>
-                <span>Gemini links redirect to Google search. Copy/paste URL instead. </span>
+                <span>Gemini links redirect to Google search. Select and open, or copy/paste URL. </span>
                 <a
                   href="https://github.com/moefingers/ai-get-interface/issues/4"
                   target="_blank"
