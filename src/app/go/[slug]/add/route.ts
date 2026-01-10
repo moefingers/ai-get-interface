@@ -47,6 +47,24 @@ function successHtml(message: string, details?: string): NextResponse {
   )
 }
 
+function warningHtml(message: string, details?: string): NextResponse {
+  return new NextResponse(
+    `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Warning</title></head>
+<body style="background:#0d1117;color:#d29922;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100dvh;margin:0;">
+  <div style="text-align:center;">
+    <h1 style="font-size:4rem;margin:0;">⚠</h1>
+    <h2>${message}</h2>
+    ${details ? `<p style="color:#8b949e;">${details}</p>` : ''}
+    <p style="color:#6e7681;margin-top:2rem;font-size:0.875rem;">You may close this tab.</p>
+  </div>
+</body>
+</html>`,
+    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' } }
+  )
+}
+
 function errorHtml(message: string, details?: string, status: number = 400): NextResponse {
   return new NextResponse(
     `<!DOCTYPE html>
@@ -196,7 +214,7 @@ export async function GET(
       const contentPreview = Object.entries(validation.data)
         .map(([k, v]) => `${fieldLabelMap[k] || k}: ${v}`)
         .join(', ')
-      return successHtml('Item already exists', `Duplicate skipped: ${contentPreview}`)
+      return warningHtml('Item already exists', `Duplicate skipped: ${contentPreview}`)
     }
   }
 
