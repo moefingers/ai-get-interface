@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { stackServerApp } from '@/stack/server'
 import { syncUser } from '@/lib/sync-user'
 import { getUserLists } from '@/app/lists/actions'
@@ -10,6 +11,16 @@ import { tw } from '@/lib/tw-theme'
 
 export default async function HomePage() {
   const stackUser = await stackServerApp.getUser()
+
+  // If authenticated, check for auth return cookie (from session auth flow)
+  if (stackUser) {
+    const cookieStore = await cookies()
+    const returnUrl = cookieStore.get('auth_return_to')?.value
+    if (returnUrl) {
+      // Cookie will be cleared by the callback route after successful add
+      redirect(returnUrl)
+    }
+  }
 
   // If not authenticated, show public landing page
   if (!stackUser) {
