@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
 import { useUser, useStackApp } from '@stackframe/stack'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
@@ -8,21 +7,6 @@ import { tw } from '@/lib/tw-theme'
 export function UserMenu() {
   const user = useUser()
   const app = useStackApp()
-  const [isOpen, setIsOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-
-  // Close on click outside
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isOpen])
 
   if (!user) {
     return (
@@ -48,11 +32,15 @@ export function UserMenu() {
   }
 
   return (
-    <div className="relative" ref={menuRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
+    <div className="relative">
+      {/* Hidden checkbox for CSS-only toggle */}
+      <input type="checkbox" id="user-menu-toggle" className="peer sr-only" />
+      
+      {/* Clickable label styled as button */}
+      <label
+        htmlFor="user-menu-toggle"
         className={cn(
-          'w-full flex items-center gap-3 px-3 py-2 rounded-lg',
+          'w-full flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer',
           tw.btn.ghost
         )}
       >
@@ -69,37 +57,33 @@ export function UserMenu() {
         <span className={cn('flex-1 text-left truncate', tw.text.primary)}>
           {user.displayName || user.primaryEmail || 'User'}
         </span>
-        <ChevronIcon className={cn('w-4 h-4 transition-transform', tw.text.muted, isOpen && 'rotate-90')} />
-      </button>
+        <ChevronIcon className={cn('w-4 h-4 transition-transform', tw.text.muted, 'peer-checked:rotate-90')} />
+      </label>
 
-      {/* Dropdown menu */}
-      {isOpen && (
-        <div
+      {/* Dropdown menu - shown when peer checkbox is checked */}
+      <div
+        className={cn(
+          'absolute bottom-full left-0 right-0 mb-1',
+          'hidden peer-checked:block',
+          tw.bg.elevated,
+          'border',
+          tw.border.default,
+          'rounded-lg shadow-lg',
+          'py-1'
+        )}
+      >
+        <button
+          onClick={() => app.signOut()}
           className={cn(
-            'absolute bottom-full left-0 right-0 mb-1',
-            tw.bg.elevated,
-            'border',
-            tw.border.default,
-            'rounded-lg shadow-lg',
-            'py-1'
+            'w-full flex items-center gap-2 px-3 py-2',
+            tw.hover.bg.subtle,
+            tw.text.secondary
           )}
         >
-          <button
-            onClick={() => {
-              app.signOut()
-              setIsOpen(false)
-            }}
-            className={cn(
-              'w-full flex items-center gap-2 px-3 py-2',
-              tw.hover.bg.subtle,
-              tw.text.secondary
-            )}
-          >
-            <LogOutIcon className="w-4 h-4" />
-            <span>Sign out</span>
-          </button>
-        </div>
-      )}
+          <LogOutIcon className="w-4 h-4" />
+          <span>Sign out</span>
+        </button>
+      </div>
     </div>
   )
 }
