@@ -161,26 +161,23 @@ function generateTokenInstructions(
       return generateChatGPTTokenInstructions(listName, slug, token, domain, url, fieldDefs, style, model)
 
     case 'google-assistant':
-      return `
-# Voice Command List: ${listName}
+      return `# Voice Command: ${listName}
 
-Trigger phrase: "add to ${listName}"
+Trigger: "add to ${listName}"
 
-## URL
+URL Template: ${url}
 
-GET ${url}
-
-## Fields
-
+Fields:
 ${fieldDefs}
 
-## Voice Response
+When triggered:
+1. Build the URL with spoken values
+2. Browse to the URL
+3. Read the page title or main text to confirm success
 
-After successfully adding an item, respond with:
-"Added {item} to ${listName}"
-
-On failure:
-"Sorry, I couldn't add that to ${listName}. Please try again."
+Example responses:
+- Success: "Added {item} to ${listName}"
+- Failure: "Sorry, couldn't add that to ${listName}"
 `.trim()
 
     default:
@@ -197,34 +194,49 @@ function generateGeminiTokenInstructions(
   fieldDefs: string,
   style: InstructionStyle
 ): string {
-  const tokenNote = 'The static token above is not sensitive - it\'s safe to store.'
-  const encodeNote = 'URL-encode all values (spaces become %20 or +).'
+  const tokenNote = 'The static token is not sensitive - safe to store.'
+  const encodeNote = 'URL-encode special characters (spaces become %20 or +).'
   
   switch (style) {
     case 'fetch':
-      // Fetch: Build URL, confirm, then use browsing tool
-      return `When I mention "${listName}" or ask to add something to it, build the URL with field values, then respond ONLY with "${listName}, [field values comma separated]?" for confirmation. When I confirm, use the "browsing" tool on the URL and tell me the response verbatim.
-URL: GET ${url}
+      return `When I mention "${listName}" or ask to add something to it:
+1. Build the URL with my values
+2. Ask me to confirm: "${listName}: [values]?"
+3. When I confirm, browse to the URL
+4. Read the page contents back to me
+
+URL Template: ${url}
+
 Fields:
 ${fieldDefs}
+
 ${encodeNote}
 ${tokenNote}`.trim()
 
     case 'link':
-      // Link: Build URL and provide clickable link
-      return `When I mention "${listName}" or ask to add something to it, build the URL with field values and provide me a clickable link. Do not fetch or open the URL - just give me the link to click.
-URL: GET ${url}
+      return `When I mention "${listName}" or ask to add something to it:
+1. Build the URL with my values
+2. Give me a clickable link (do NOT fetch it yourself)
+
+URL Template: ${url}
+
 Fields:
 ${fieldDefs}
+
 ${encodeNote}
 ${tokenNote}`.trim()
 
     case 'browser':
-      // Browser: Build URL, confirm, then open in browser
-      return `When I mention "${listName}" or ask to add something to it, build the URL with field values, then respond ONLY with "${listName}, [field values comma separated]?" for confirmation. When I confirm, open the URL in my browser.
-URL: GET ${url}
+      return `When I mention "${listName}" or ask to add something to it:
+1. Build the URL with my values
+2. Ask me to confirm: "${listName}: [values]?"
+3. When I confirm, open the URL in my browser
+
+URL Template: ${url}
+
 Fields:
 ${fieldDefs}
+
 ${encodeNote}
 ${tokenNote}`.trim()
   }
@@ -243,64 +255,49 @@ function generateChatGPTTokenInstructions(
   style: InstructionStyle,
   model: AiModel
 ): string {
-  const actionVerb = getActionVerb(style)
-  const actionSteps = getActionSteps(style, url)
-
-  return `
-# ${listName}
+  const encodeNote = 'URL-encode special characters (spaces become %20 or +).'
+  
+  switch (style) {
+    case 'fetch':
+      return `# ${listName}
 
 When I ask to add something to ${listName}:
-${actionSteps}
+1. Build the URL with my values
+2. Browse to the URL
+3. Read the page contents back to me
 
-## URL
+**URL Template:**
+${url}
 
-GET ${url}
-
-## Fields
-
+**Fields:**
 ${fieldDefs}
 
-URL-encode all values (spaces become %20 or +).
+${encodeNote}
 
-## Example
+**Example:** "add milk to ${listName}" → browse to:
+${domain}/go/${slug}/add?token=${token}&source=${model}&1=milk`.trim()
 
-If I say "add milk to ${listName}", ${actionVerb}:
-${domain}/go/${slug}/add?token=${token}&source=${model}&1=milk
-`.trim()
-}
-
-/**
- * Get the action verb phrase based on instruction style
- */
-function getActionVerb(style: InstructionStyle): string {
-  switch (style) {
-    case 'fetch':
-      return 'fetch'
     case 'link':
-      return 'provide this link'
-    case 'browser':
-      return 'open this URL in my browser'
-  }
-}
+      return `# ${listName}
 
-/**
- * Get the numbered action steps based on instruction style
- */
-function getActionSteps(style: InstructionStyle, _url: string): string {
-  switch (style) {
-    case 'fetch':
-      return `1. Build the URL below with the item values
-2. Fetch the URL
-3. Reply with the page content`
-    case 'link':
-      return `1. Build the URL below with the item values
-2. Provide me a clickable link to open
-3. Wait for me to click it and confirm`
-    case 'browser':
-      return `1. Build the URL below with the item values
-2. Open the URL in my browser
-3. Tell me you've opened it`
+When I ask to add something to ${listName}:
+1. Build the URL with my values
+2. Give me a clickable link (do NOT fetch it)
+
+**URL Template:**
+${url}
+
+**Fields:**
+${fieldDefs}
+
+${encodeNote}
+
+**Example:** "add milk to ${listName}" → provide link:
+${domain}/go/${slug}/add?token=${token}&source=${model}&1=milk`.trim()
   }
+  
+  // ChatGPT doesn't support 'browser' style, but fallback just in case
+  return generateChatGPTTokenInstructions(listName, slug, token, domain, url, fieldDefs, 'link', model)
 }
 
 /**
@@ -324,85 +321,79 @@ function generateSessionInstructions(
     .join('\n')
 
   const url = `${domain}/go/${slug}/add?source=${model}&${fieldParams}`
+  const exampleUrl = `${domain}/go/${slug}/add?source=${model}&1=milk`
 
   // Session auth requires browser interaction - default to 'browser', fall back from 'fetch'
   const style = params.style === 'fetch' ? 'browser' : (params.style ?? 'browser')
-  const actionVerb = getActionVerb(style)
-  const actionSteps = getActionSteps(style, url)
-  const sessionNote = 'Note: This link requires me to be logged in. The browser will verify my identity.'
+  const sessionNote = 'Note: I must be logged in for this link to work.'
+  const encodeNote = 'URL-encode special characters (spaces become %20 or +).'
 
   switch (model) {
     case 'gemini':
-      return `
-# ${listName}
+      if (style === 'link') {
+        return `When I mention "${listName}" or ask to add something to it:
+1. Build the URL with my values
+2. Give me a clickable link (do NOT open it yourself)
 
-When I mention "${listName}" or ask to add something to it:
-${actionSteps}
+URL Template: ${url}
 
-## URL
-
-${url}
-
-## Fields
-
+Fields:
 ${fieldDefs}
 
-URL-encode all values (spaces become %20 or +).
+${encodeNote}
+${sessionNote}`.trim()
+      }
+      // browser style
+      return `When I mention "${listName}" or ask to add something to it:
+1. Build the URL with my values
+2. Ask me to confirm: "${listName}: [values]?"
+3. When I confirm, open the URL in my browser
 
-## Example
+URL Template: ${url}
 
-If I say "add milk to ${listName}", ${actionVerb}:
-${domain}/go/${slug}/add?source=${model}&1=milk
+Fields:
+${fieldDefs}
 
-${sessionNote}
-`.trim()
+${encodeNote}
+${sessionNote}`.trim()
 
     case 'chatgpt':
-      return `
-# ${listName}
+      // ChatGPT can only do 'link' for session auth (no browser capability)
+      return `# ${listName}
 
 When I ask to add something to ${listName}:
-${actionSteps}
+1. Build the URL with my values
+2. Give me a clickable link (do NOT fetch it)
 
-## URL
-
+**URL Template:**
 ${url}
 
-## Fields
-
+**Fields:**
 ${fieldDefs}
 
-URL-encode all values (spaces become %20 or +).
+${encodeNote}
 
-## Example
+**Example:** "add milk to ${listName}" → provide link:
+${exampleUrl}
 
-If I say "add milk to ${listName}", ${actionVerb}:
-${domain}/go/${slug}/add?source=${model}&1=milk
-
-${sessionNote}
-`.trim()
+${sessionNote}`.trim()
 
     case 'google-assistant':
-      return `
-# Voice Command List: ${listName}
+      return `# Voice Command: ${listName}
 
-Trigger phrase: "add to ${listName}"
+Trigger: "add to ${listName}"
 
-## URL
+URL Template: ${url}
 
-${url}
-
-## Fields
-
+Fields:
 ${fieldDefs}
 
-## Voice Response
+When triggered:
+1. Build the URL with spoken values
+2. Open the URL in my browser
+3. Say: "Opening ${listName} to add {item}"
 
-After opening the link, respond with:
-"Opening ${listName} to add {item}"
-
-${sessionNote}
-`.trim()
+${sessionNote}`.trim()
 
     default:
       return generateSessionInstructions('chatgpt', params)
