@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { SignIn, SignUp } from '@stackframe/stack'
+import { SignIn, SignUp, useUser } from '@stackframe/stack'
+import { useRouter } from 'next/navigation'
 import { SlidingView, SlidingViewItem } from '@/components/ui/SlidingView'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
@@ -26,6 +27,15 @@ interface AuthTabsProps {
 export function AuthTabs({ afterAuthReturnTo }: AuthTabsProps) {
   const [activeTab, setActiveTab] = useState<AuthTab>('sign-up')
   const [mounted, setMounted] = useState(false)
+  const user = useUser()
+  const router = useRouter()
+
+  // If user is signed in and we have a return URL, redirect immediately
+  useEffect(() => {
+    if (user && afterAuthReturnTo) {
+      router.replace(afterAuthReturnTo)
+    }
+  }, [user, afterAuthReturnTo, router])
 
   // Read hash on mount
   useEffect(() => {
