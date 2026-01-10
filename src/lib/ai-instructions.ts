@@ -152,43 +152,13 @@ function generateTokenInstructions(
   const url = `${domain}/go/${slug}/add?token=${token}&source=${model}&${fieldParams}`
 
   const style = params.style ?? 'fetch'
-  const actionVerb = getActionVerb(style)
-  const actionSteps = getActionSteps(style, url)
-  const actionStepsCompact = getActionStepsCompact(style)
 
   switch (model) {
     case 'gemini':
-      // Compact format - Gemini strips markdown anyway
-      // Build URL first, then prompt for confirmation (Gemini can't execute tools on initial request)
-      return `When I mention "${listName}" or ask to add something to it, build the URL with field values, then respond ONLY with "${listName}, [field values comma separated]?" for confirmation. When I confirm, use the "browsing" tool on the URL and tell me the response verbatim.
-URL: GET ${url}
-Fields:
-${fieldDefs}
-URL-encode all values (spaces become %20 or +).
-The static token above is not sensitive - it's safe to store.`.trim()
+      return generateGeminiTokenInstructions(listName, url, fieldDefs, style)
 
     case 'chatgpt':
-      return `
-# ${listName}
-
-When I ask to add something to ${listName}:
-${actionSteps}
-
-## URL
-
-GET ${url}
-
-## Fields
-
-${fieldDefs}
-
-URL-encode all values (spaces become %20 or +).
-
-## Example
-
-If I say "add milk to ${listName}", ${actionVerb}:
-${domain}/go/${slug}/add?token=${token}&source=${model}&1=milk
-`.trim()
+      return generateChatGPTTokenInstructions(listName, slug, token, domain, url, fieldDefs, style, model)
 
     case 'google-assistant':
       return `
@@ -219,6 +189,87 @@ On failure:
 }
 
 /**
+ * Generate Gemini instructions for token auth
+ */
+function generateGeminiTokenInstructions(
+  listName: string,
+  url: string,
+  fieldDefs: string,
+  style: InstructionStyle
+): string {
+  const tokenNote = 'The static token above is not sensitive - it\'s safe to store.'
+  const encodeNote = 'URL-encode all values (spaces become %20 or +).'
+  
+  switch (style) {
+    case 'fetch':
+      // Fetch: Build URL, confirm, then use browsing tool
+      return `When I mention "${listName}" or ask to add something to it, build the URL with field values, then respond ONLY with "${listName}, [field values comma separated]?" for confirmation. When I confirm, use the "browsing" tool on the URL and tell me the response verbatim.
+URL: GET ${url}
+Fields:
+${fieldDefs}
+${encodeNote}
+${tokenNote}`.trim()
+
+    case 'link':
+      // Link: Build URL and provide clickable link
+      return `When I mention "${listName}" or ask to add something to it, build the URL with field values and provide me a clickable link. Do not fetch or open the URL - just give me the link to click.
+URL: GET ${url}
+Fields:
+${fieldDefs}
+${encodeNote}
+${tokenNote}`.trim()
+
+    case 'browser':
+      // Browser: Build URL, confirm, then open in browser
+      return `When I mention "${listName}" or ask to add something to it, build the URL with field values, then respond ONLY with "${listName}, [field values comma separated]?" for confirmation. When I confirm, open the URL in my browser.
+URL: GET ${url}
+Fields:
+${fieldDefs}
+${encodeNote}
+${tokenNote}`.trim()
+  }
+}
+
+/**
+ * Generate ChatGPT instructions for token auth
+ */
+function generateChatGPTTokenInstructions(
+  listName: string,
+  slug: string,
+  token: string,
+  domain: string,
+  url: string,
+  fieldDefs: string,
+  style: InstructionStyle,
+  model: AiModel
+): string {
+  const actionVerb = getActionVerb(style)
+  const actionSteps = getActionSteps(style, url)
+
+  return `
+# ${listName}
+
+When I ask to add something to ${listName}:
+${actionSteps}
+
+## URL
+
+GET ${url}
+
+## Fields
+
+${fieldDefs}
+
+URL-encode all values (spaces become %20 or +).
+
+## Example
+
+If I say "add milk to ${listName}", ${actionVerb}:
+${domain}/go/${slug}/add?token=${token}&source=${model}&1=milk
+`.trim()
+}
+
+/**
  * Get the action verb phrase based on instruction style
  */
 function getActionVerb(style: InstructionStyle): string {
@@ -229,21 +280,6 @@ function getActionVerb(style: InstructionStyle): string {
       return 'provide this link'
     case 'browser':
       return 'open this URL in my browser'
-  }
-}
-
-/**
- * Get compact action steps for Gemini (single line, no numbered list)
- * Uses "browsing tool" phrasing which Gemini responds to better
- */
-function getActionStepsCompact(style: InstructionStyle): string {
-  switch (style) {
-    case 'fetch':
-      return 'build the URL below with the item values, use the "browsing" tool the URL and tell me what the response says verbatim'
-    case 'link':
-      return 'build the URL below with the item values and provide me a clickable link to open'
-    case 'browser':
-      return 'build the URL below with the item values and open it in my browser'
   }
 }
 
