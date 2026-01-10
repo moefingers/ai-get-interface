@@ -5,6 +5,8 @@ import { getUserLists } from '@/app/lists/actions'
 import { HomeClient } from './HomeClient'
 import Link from 'next/link'
 import Image from 'next/image'
+import { cn } from '@/lib/cn'
+import { tw } from '@/lib/tw-theme'
 
 export default async function HomePage() {
   const stackUser = await stackServerApp.getUser()
@@ -39,94 +41,106 @@ export default async function HomePage() {
 
 function LandingPage() {
   return (
-    <main className="min-h-screen bg-linear-to-b from-gray-50 to-white">
+    <main className={cn('min-h-screen', tw.bg.main)}>
       {/* Header */}
-      <header className="px-6 py-4 flex justify-between items-center max-w-6xl mx-auto">
+      <header className={cn('px-6 py-4 flex justify-between items-center max-w-6xl mx-auto border-b', tw.border.muted)}>
         <div className="flex items-center gap-3">
           <Image src="/icon.png" alt="AI Get Interface" width={40} height={40} />
-          <span className="font-semibold text-xl">AI Get Interface</span>
+          <span className={cn('font-semibold text-xl', tw.text.primary)}>AI Get Interface</span>
         </div>
         <Link 
-          href="/auth/sign-in"
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          href="/auth#sign-in"
+          prefetch={true}
+          className={cn('px-4 py-2', tw.btn.primary)}
         >
           Sign In
         </Link>
       </header>
 
-      {/* Hero */}
-      <section className="px-6 py-20 text-center max-w-4xl mx-auto">
-        <h1 className="text-5xl font-bold text-gray-900 mb-6">
-          AI Get Interface
-        </h1>
-        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Create lists and let AI assistants add items for you. Works with Gemini, 
-          ChatGPT, and other AI assistants through simple voice or text commands.
-        </p>
-        <Link
-          href="/auth/sign-up"
-          className="inline-block px-8 py-3 bg-green-600 text-white text-lg font-medium rounded-lg hover:bg-green-700 transition-colors"
-        >
-          Get Started Free
-        </Link>
+      {/* Hero - Two column on desktop */}
+      <section className="px-6 py-16 md:py-24 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <h1 className={cn('text-4xl md:text-5xl font-bold mb-6', tw.text.primary)}>
+              Let AI manage your lists
+            </h1>
+            <p className={cn('text-lg md:text-xl mb-8', tw.text.secondary)}>
+              Create lists and let AI assistants add items for you. Works with Gemini, 
+              ChatGPT, and other AI assistants through simple voice or text commands.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link
+                href="/auth#sign-up"
+                prefetch={true}
+                className={cn('px-8 py-3 text-lg font-medium text-center', tw.btn.primary)}
+              >
+                Get Started Free
+              </Link>
+            </div>
+          </div>
+          <div className={cn('p-8 rounded-2xl', tw.bg.card, 'border', tw.border.default)}>
+            <div className={cn('space-y-4', tw.text.secondary)}>
+              <div className="flex items-start gap-3">
+                <span className={cn('text-2xl')}>🗣️</span>
+                <div>
+                  <p className={cn('font-medium', tw.text.primary)}>&quot;Add milk to my groceries&quot;</p>
+                  <p className="text-sm">→ Milk added to Groceries list</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className={cn('text-2xl')}>🗣️</span>
+                <div>
+                  <p className={cn('font-medium', tw.text.primary)}>&quot;Remember to call mom&quot;</p>
+                  <p className="text-sm">→ Call mom added to Reminders</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className={cn('text-2xl')}>🗣️</span>
+                <div>
+                  <p className={cn('font-medium', tw.text.primary)}>&quot;Add The Matrix to watch list&quot;</p>
+                  <p className="text-sm">→ The Matrix added to Movies</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* How it works */}
-      <section className="px-6 py-16 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
+      <section id="how-it-works" className={cn('px-6 py-16', tw.bg.sidebar)}>
+        <div className="max-w-6xl mx-auto">
+          <h2 className={cn('text-3xl font-bold text-center mb-12', tw.text.primary)}>How It Works</h2>
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">1</div>
-              <h3 className="font-semibold text-lg mb-2">Create a List</h3>
-              <p className="text-gray-600">Sign up and create lists for groceries, todos, ideas, or anything else.</p>
+            <div className={cn('text-center p-6 rounded-xl', tw.bg.card, 'border', tw.border.default)}>
+              <div className={cn('w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4', tw.bg.primaryMuted, tw.text.accent)}>1</div>
+              <h3 className={cn('font-semibold text-lg mb-2', tw.text.primary)}>Create a List</h3>
+              <p className={tw.text.secondary}>Sign up and create lists for groceries, todos, ideas, or anything else.</p>
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">2</div>
-              <h3 className="font-semibold text-lg mb-2">Connect Your AI</h3>
-              <p className="text-gray-600">Add simple instructions to your AI assistant with your personal link.</p>
+            <div className={cn('text-center p-6 rounded-xl', tw.bg.card, 'border', tw.border.default)}>
+              <div className={cn('w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4', tw.bg.primaryMuted, tw.text.accent)}>2</div>
+              <h3 className={cn('font-semibold text-lg mb-2', tw.text.primary)}>Connect Your AI</h3>
+              <p className={tw.text.secondary}>Add simple instructions to your AI assistant with your personal link.</p>
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">3</div>
-              <h3 className="font-semibold text-lg mb-2">Just Ask</h3>
-              <p className="text-gray-600">&quot;Add milk to my groceries&quot; — your AI handles the rest.</p>
+            <div className={cn('text-center p-6 rounded-xl', tw.bg.card, 'border', tw.border.default)}>
+              <div className={cn('w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4', tw.bg.primaryMuted, tw.text.accent)}>3</div>
+              <h3 className={cn('font-semibold text-lg mb-2', tw.text.primary)}>Just Ask</h3>
+              <p className={tw.text.secondary}>&quot;Add milk to my groceries&quot; — your AI handles the rest.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="px-6 py-16 max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-12">Features</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="p-6 border rounded-lg">
-            <h3 className="font-semibold text-lg mb-2">🤖 AI Assistant Integration</h3>
-            <p className="text-gray-600">Works with Gemini, ChatGPT, Google Assistant, and more.</p>
-          </div>
-          <div className="p-6 border rounded-lg">
-            <h3 className="font-semibold text-lg mb-2">🔒 Secure by Design</h3>
-            <p className="text-gray-600">Your lists are private. Only you can view them.</p>
-          </div>
-          <div className="p-6 border rounded-lg">
-            <h3 className="font-semibold text-lg mb-2">⚡ Instant Updates</h3>
-            <p className="text-gray-600">Items appear in your list immediately after adding.</p>
-          </div>
-          <div className="p-6 border rounded-lg">
-            <h3 className="font-semibold text-lg mb-2">📱 Access Anywhere</h3>
-            <p className="text-gray-600">View and manage your lists from any device.</p>
-          </div>
-        </div>
-      </section>
+
 
       {/* Footer */}
-      <footer className="px-6 py-8 border-t">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-gray-500 text-sm">© 2026 AI Get Interface</p>
+      <footer className={cn('px-6 py-8 border-t', tw.border.muted)}>
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className={cn('text-sm', tw.text.muted)}>© 2026 AI Get Interface</p>
           <div className="flex gap-6">
-            <Link href="/privacy" className="text-gray-500 hover:text-gray-700 text-sm">
+            <Link href="/privacy" className={cn('text-sm', tw.text.muted, tw.hover.text.primary)}>
               Privacy Policy
             </Link>
-            <Link href="/terms" className="text-gray-500 hover:text-gray-700 text-sm">
+            <Link href="/terms" className={cn('text-sm', tw.text.muted, tw.hover.text.primary)}>
               Terms of Service
             </Link>
           </div>
