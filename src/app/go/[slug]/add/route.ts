@@ -29,9 +29,9 @@ const corsHeaders = {
 }
 
 // Helper to create HTML response with CORS (for AI readability)
-function successHtml(message: string, details?: string, listSlug?: string): NextResponse {
+function successHtml(message: string, details?: string, listSlug?: string, listName?: string): NextResponse {
   const listLink = listSlug 
-    ? `<a href="/lists/${listSlug}" style="color:#3fb950;text-decoration:underline;">View list</a>` 
+    ? `<a href="/lists/${listSlug}" style="color:#3fb950;text-decoration:underline;">Go to ${listName || 'list'}</a>` 
     : ''
   const response = new NextResponse(
     `<!DOCTYPE html>
@@ -52,9 +52,9 @@ function successHtml(message: string, details?: string, listSlug?: string): Next
   return response
 }
 
-function warningHtml(message: string, details?: string, listSlug?: string): NextResponse {
+function warningHtml(message: string, details?: string, listSlug?: string, listName?: string): NextResponse {
   const listLink = listSlug 
-    ? `<a href="/lists/${listSlug}" style="color:#d29922;text-decoration:underline;">View list</a>` 
+    ? `<a href="/lists/${listSlug}" style="color:#d29922;text-decoration:underline;">Go to ${listName || 'list'}</a>` 
     : ''
   const response = new NextResponse(
     `<!DOCTYPE html>
@@ -75,9 +75,9 @@ function warningHtml(message: string, details?: string, listSlug?: string): Next
   return response
 }
 
-function errorHtml(message: string, details?: string, status: number = 400, listSlug?: string): NextResponse {
+function errorHtml(message: string, details?: string, status: number = 400, listSlug?: string, listName?: string): NextResponse {
   const listLink = listSlug 
-    ? `<a href="/lists/${listSlug}" style="color:#f85149;text-decoration:underline;">View list</a>` 
+    ? `<a href="/lists/${listSlug}" style="color:#f85149;text-decoration:underline;">Go to ${listName || 'list'}</a>` 
     : ''
   const response = new NextResponse(
     `<!DOCTYPE html>
@@ -133,11 +133,11 @@ export async function GET(
 
   // 4. Check list is published and active
   if (list.isDraft) {
-    return errorHtml('List is not published', 'This list is still a draft', 404, slug)
+    return errorHtml('List is not published', 'This list is still a draft', 404, slug, list.name)
   }
 
   if (!list.isActive) {
-    return errorHtml('List is not active', 'This list has been deactivated', 404, slug)
+    return errorHtml('List is not active', 'This list has been deactivated', 404, slug, list.name)
   }
 
   // 5. Validate authentication based on list's authMethod and provided params
@@ -148,7 +148,7 @@ export async function GET(
     isAuthorized = staticToken === list.authToken
     if (!isAuthorized) {
       console.log(`[GO] Invalid static token for list ${slug}`)
-      return errorHtml('Invalid token', 'The provided token is incorrect', 401, slug)
+      return errorHtml('Invalid token', 'The provided token is incorrect', 401, slug, list.name)
     }
   } else if (timeCode) {
     // HMAC time code auth: validate against user's seed (dormant feature)
@@ -159,7 +159,7 @@ export async function GET(
     )
     if (!isAuthorized) {
       console.log(`[GO] Invalid time code for list ${slug}`)
-      return errorHtml('Invalid or expired code', 'The time code is incorrect or has expired', 401, slug)
+      return errorHtml('Invalid or expired code', 'The time code is incorrect or has expired', 401, slug, list.name)
     }
   } else if (list.authMethod === 'session') {
     // Session auth: check if user is logged in and owns this list
@@ -182,14 +182,14 @@ export async function GET(
     // Check if logged-in user owns this list
     if (stackUser.id !== list.user.stackAuthId) {
       console.log(`[GO] Session user ${stackUser.id} does not own list ${slug} (owner: ${list.user.stackAuthId})`)
-      return errorHtml('Not authorized', 'You do not own this list', 403, slug)
+      return errorHtml('Not authorized', 'You do not own this list', 403, slug, list.name)
     }
     
     isAuthorized = true
     console.log(`[GO] Session auth successful for list ${slug}`)
   } else {
     // No auth provided and list doesn't use session auth
-    return errorHtml('Missing authentication', 'A token parameter is required', 401, slug)
+    return errorHtml('Missing authentication', 'A token parameter is required', 401, slug, list.name)
   }
 
   // 6. Parse and validate field data
@@ -207,7 +207,7 @@ export async function GET(
 
   const validation = validateItemData(queryParams, fields)
   if (!validation.valid) {
-    return errorHtml('Validation failed', validation.errors.join(', '), 400, slug)
+    return errorHtml('Validation failed', validation.errors.join(', '), 400, slug, list.name)
   }
 
   // 7. Check for duplicates (same content within same minute)
@@ -236,7 +236,7 @@ export async function GET(
       const contentPreview = Object.entries(validation.data)
         .map(([k, v]) => `${fieldLabelMap[k] || k}: ${v}`)
         .join(', ')
-      return warningHtml('Item already exists', `Duplicate skipped: ${contentPreview}`, slug)
+      return warningHtml('Item already exists', `Duplicate skipped: ${contentPreview}`, slug, list.name)
     }
   }
 
@@ -256,5 +256,5 @@ export async function GET(
   const contentPreview = Object.entries(item.content as Record<string, unknown>)
     .map(([k, v]) => `${fieldLabelMap[k] || k}: ${v}`)
     .join(', ')
-  return successHtml(`Added to ${list.name}`, contentPreview, slug)
+  return successHtml(`Added to ${list.name}`, contentPreview, slug, list.name)
 }
