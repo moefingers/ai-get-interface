@@ -150,12 +150,17 @@ export async function GET(
     const stackUser = await stackServerApp.getUser()
     
     if (!stackUser) {
-      // Not logged in - redirect to login with return URL
+      // Not logged in - store return URL in cookie and redirect to login
       const returnUrl = request.nextUrl.toString()
-      const loginUrl = new URL('/auth', request.nextUrl.origin)
-      loginUrl.searchParams.set('after_auth_return_to', returnUrl)
-      // Append hash for tab selection (will be handled client-side)
-      return NextResponse.redirect(loginUrl.toString() + '#sign-in')
+      const response = NextResponse.redirect(new URL('/auth#sign-in', request.nextUrl.origin))
+      response.cookies.set('auth_return_to', returnUrl, {
+        httpOnly: false, // Client-side needs to read this
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 5, // 5 minutes
+        path: '/',
+      })
+      return response
     }
     
     // Check if logged-in user owns this list

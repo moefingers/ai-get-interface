@@ -20,22 +20,33 @@ function getTabFromHash(): AuthTab {
   return hash === 'sign-in' ? 'sign-in' : 'sign-up'
 }
 
-interface AuthTabsProps {
-  afterAuthReturnTo?: string
+function getReturnUrlFromCookie(): string | null {
+  if (typeof document === 'undefined') return null
+  const match = document.cookie.match(/(?:^|; )auth_return_to=([^;]*)/)
+  return match ? decodeURIComponent(match[1]) : null
 }
 
-export function AuthTabs({ afterAuthReturnTo }: AuthTabsProps) {
+function clearReturnCookie(): void {
+  if (typeof document === 'undefined') return
+  document.cookie = 'auth_return_to=; path=/; max-age=0'
+}
+
+export function AuthTabs() {
   const [activeTab, setActiveTab] = useState<AuthTab>('sign-up')
   const [mounted, setMounted] = useState(false)
   const user = useUser()
   const router = useRouter()
 
-  // If user is signed in and we have a return URL, redirect immediately
+  // If user is signed in and we have a return URL in cookie, redirect immediately
   useEffect(() => {
-    if (user && afterAuthReturnTo) {
-      router.replace(afterAuthReturnTo)
+    if (user && mounted) {
+      const returnUrl = getReturnUrlFromCookie()
+      if (returnUrl) {
+        clearReturnCookie()
+        router.replace(returnUrl)
+      }
     }
-  }, [user, afterAuthReturnTo, router])
+  }, [user, mounted, router])
 
   // Read hash on mount
   useEffect(() => {
@@ -92,12 +103,12 @@ export function AuthTabs({ afterAuthReturnTo }: AuthTabsProps) {
         <SlidingView activeIndex={activeIndex} viewCount={2} duration={300}>
           <SlidingViewItem>
             <div className="p-6">
-              <SignIn automaticRedirect={!!afterAuthReturnTo} />
+              <SignIn />
             </div>
           </SlidingViewItem>
           <SlidingViewItem>
             <div className="p-6">
-              <SignUp automaticRedirect={!!afterAuthReturnTo} />
+              <SignUp />
             </div>
           </SlidingViewItem>
         </SlidingView>
