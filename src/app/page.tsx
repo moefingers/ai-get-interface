@@ -8,6 +8,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
+import { MessageCircle } from 'lucide-react'
 
 export default async function HomePage() {
   const stackUser = await stackServerApp.getUser()
@@ -73,10 +74,10 @@ function LandingPage() {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h1 className={cn('text-4xl md:text-5xl font-bold mb-6', tw.text.primary)}>
-              Let AI manage your lists
+              Let AI manage your lists and logs
             </h1>
             <p className={cn('text-lg md:text-xl mb-8', tw.text.secondary)}>
-              Create lists and let AI assistants add items for you. Works with Gemini, 
+              Create lists and logs and let AI assistants add items for you. Works with Gemini, 
               ChatGPT, and other AI assistants through simple voice or text commands.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -95,21 +96,21 @@ function LandingPage() {
           <div className={cn('p-8 rounded-2xl', tw.bg.card, 'border', tw.border.default)}>
             <div className={cn('space-y-4', tw.text.secondary)}>
               <div className="flex items-start gap-3">
-                <span className={cn('text-2xl')}>🗣️</span>
+                <MessageCircle className={cn('w-6 h-6 shrink-0', tw.text.accent)} />
                 <div>
                   <p className={cn('font-medium', tw.text.primary)}>&quot;Log bench press, 3 sets of 8 at 185&quot;</p>
                   <p className="text-sm">→ Bench press: 3×8 @ 185lb added to Workout Log</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <span className={cn('text-2xl')}>🗣️</span>
+                <MessageCircle className={cn('w-6 h-6 shrink-0', tw.text.accent)} />
                 <div>
                   <p className={cn('font-medium', tw.text.primary)}>&quot;Pain level 4, lower back after sitting&quot;</p>
                   <p className="text-sm">→ Level 4, lower back, sitting added to Pain Log</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <span className={cn('text-2xl')}>🗣️</span>
+                <MessageCircle className={cn('w-6 h-6 shrink-0', tw.text.accent)} />
                 <div>
                   <p className={cn('font-medium', tw.text.primary)}>&quot;Called Dr. Smith about test results&quot;</p>
                   <p className="text-sm">→ Dr. Smith, test results added to Call Log</p>
@@ -128,7 +129,7 @@ function LandingPage() {
             <div className={cn('text-center p-6 rounded-xl', tw.bg.card, 'border', tw.border.default)}>
               <div className={cn('w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4', tw.bg.primaryMuted, tw.text.accent)}>1</div>
               <h3 className={cn('font-semibold text-lg mb-2', tw.text.primary)}>Create a List</h3>
-              <p className={tw.text.secondary}>Sign up and create lists for groceries, todos, ideas, or anything else.</p>
+              <p className={tw.text.secondary}>Sign up and create lists and logs for groceries, todos, ideas, or anything else.</p>
             </div>
             <div className={cn('text-center p-6 rounded-xl', tw.bg.card, 'border', tw.border.default)}>
               <div className={cn('w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4', tw.bg.primaryMuted, tw.text.accent)}>2</div>
