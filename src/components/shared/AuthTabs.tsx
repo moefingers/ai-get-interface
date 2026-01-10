@@ -19,7 +19,11 @@ function getTabFromHash(): AuthTab {
   return hash === 'sign-in' ? 'sign-in' : 'sign-up'
 }
 
-export function AuthTabs() {
+interface AuthTabsProps {
+  afterAuthReturnTo?: string
+}
+
+export function AuthTabs({ afterAuthReturnTo }: AuthTabsProps) {
   const [activeTab, setActiveTab] = useState<AuthTab>('sign-up')
   const [mounted, setMounted] = useState(false)
 
@@ -78,12 +82,12 @@ export function AuthTabs() {
         <SlidingView activeIndex={activeIndex} viewCount={2} duration={300}>
           <SlidingViewItem>
             <div className="p-6">
-              <SignIn />
+              <SignIn automaticRedirect={!!afterAuthReturnTo} />
             </div>
           </SlidingViewItem>
           <SlidingViewItem>
             <div className="p-6">
-              <SignUp />
+              <SignUp automaticRedirect={!!afterAuthReturnTo} />
             </div>
           </SlidingViewItem>
         </SlidingView>
