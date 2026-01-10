@@ -14,13 +14,13 @@ export default async function ListPage({ params }: ListPageProps) {
 
   // If not authenticated, redirect to sign in
   if (!stackUser) {
-    redirect('/auth/sign-in')
+    redirect('/auth#sign-in')
   }
 
   // Sync user to Prisma database
   const user = await syncUser()
   if (!user) {
-    redirect('/auth/sign-in')
+    redirect('/auth#sign-in')
   }
 
   // Get the specific list by slug

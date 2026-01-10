@@ -152,9 +152,10 @@ export async function GET(
     if (!stackUser) {
       // Not logged in - redirect to login with return URL
       const returnUrl = request.nextUrl.toString()
-      const loginUrl = new URL('/auth/sign-in', request.nextUrl.origin)
+      const loginUrl = new URL('/auth', request.nextUrl.origin)
       loginUrl.searchParams.set('after_auth_return_to', returnUrl)
-      return NextResponse.redirect(loginUrl)
+      // Append hash for tab selection (will be handled client-side)
+      return NextResponse.redirect(loginUrl.toString() + '#sign-in')
     }
     
     // Check if logged-in user owns this list

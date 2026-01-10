@@ -83,22 +83,22 @@ function LandingPage() {
               <div className="flex items-start gap-3">
                 <span className={cn('text-2xl')}>🗣️</span>
                 <div>
-                  <p className={cn('font-medium', tw.text.primary)}>&quot;Add milk to my groceries&quot;</p>
-                  <p className="text-sm">→ Milk added to Groceries list</p>
+                  <p className={cn('font-medium', tw.text.primary)}>&quot;Log bench press, 3 sets of 8 at 185&quot;</p>
+                  <p className="text-sm">→ Bench press: 3×8 @ 185lb added to Workout Log</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <span className={cn('text-2xl')}>🗣️</span>
                 <div>
-                  <p className={cn('font-medium', tw.text.primary)}>&quot;Remember to call mom&quot;</p>
-                  <p className="text-sm">→ Call mom added to Reminders</p>
+                  <p className={cn('font-medium', tw.text.primary)}>&quot;Pain level 4, lower back after sitting&quot;</p>
+                  <p className="text-sm">→ Level 4, lower back, sitting added to Pain Log</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <span className={cn('text-2xl')}>🗣️</span>
                 <div>
-                  <p className={cn('font-medium', tw.text.primary)}>&quot;Add The Matrix to watch list&quot;</p>
-                  <p className="text-sm">→ The Matrix added to Movies</p>
+                  <p className={cn('font-medium', tw.text.primary)}>&quot;Called Dr. Smith about test results&quot;</p>
+                  <p className="text-sm">→ Dr. Smith, test results added to Call Log</p>
                 </div>
               </div>
             </div>
