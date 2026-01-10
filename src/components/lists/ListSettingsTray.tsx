@@ -407,6 +407,27 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
               </div>
             </RowHider>
 
+            {/* Gemini fetch warning */}
+            <RowHider showWhen={selectedModel === 'gemini' && selectedStyle === 'fetch'}>
+              <div className={cn(
+                'mb-3 px-3 py-2 rounded-lg border text-xs',
+                tw.border.warning,
+                tw.bg.warningMuted,
+                tw.text.warning
+              )}>
+                <span>AI may not fetch URL on initial prompt. </span>
+                <a
+                  href="https://github.com/moefingers/ai-get-interface/issues/1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn('inline-flex items-center gap-1 underline', tw.hover.text.primary)}
+                >
+                  Known issue #1
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </RowHider>
+
             {/* Instructions preview */}
             <div className={cn('rounded-lg border', tw.border.default, tw.bg.main)}>
               <pre className={cn(
