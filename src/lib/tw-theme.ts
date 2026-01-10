@@ -99,6 +99,8 @@ export const tw = {
     primary: 'border-[var(--color-primary)]',
     /** Accent color border */
     accent: 'border-[var(--color-accent)]',
+    /** Warning border */
+    warning: 'border-[var(--color-warning)]',
     /** Error border */
     error: 'border-[var(--color-error)]',
     /** Focus ring color */

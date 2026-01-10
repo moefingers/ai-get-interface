@@ -248,9 +248,9 @@ Build → Success? → PUSH
 ```bash
 pnpm dev              # Start dev server (Turbopack)
 pnpm build            # Production build (includes prisma generate)
-pnpx prisma studio    # Visual database editor
-pnpx prisma migrate dev --name <name>  # Create migration
-pnpx prisma generate  # Regenerate client (required after schema changes)
+pnpm prisma studio    # Visual database editor
+pnpm prisma migrate dev --name <name>  # Create migration
+pnpm prisma generate  # Regenerate client (required after schema changes)
 ```
 
 ### Checking Dev Server Output

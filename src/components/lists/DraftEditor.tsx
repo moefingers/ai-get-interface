@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useEffect, useRef, useCallback, useMemo } from 'react'
-import { Save, Eye, Pencil } from 'lucide-react'
+import { Save, Eye, Pencil, AlertTriangle } from 'lucide-react'
 import { Button, Input, Label, ColumnHider, RowHider, SlidingView, SlidingViewItem } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
@@ -71,7 +71,6 @@ export function DraftEditor({
   const [publishedList, setPublishedList] = useState<PublishListResponse | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [showFieldsPreview, setShowFieldsPreview] = useState(false)
-  const [setupSlide, setSetupSlide] = useState<0 | 1>(0) // 0 = AI model, 1 = auth method
 
   const [name, setName] = useState(initialName === 'New List' ? '' : initialName)
   const [fields, setFields] = useState<InternalField[]>(() =>
@@ -81,8 +80,8 @@ export function DraftEditor({
         : [{ name: '1', label: 'Item', type: 'text', required: true, order: 0 }]
     )
   )
-  const [authMethod, setAuthMethod] = useState<AuthMethod>(initialAuthMethod || 'token')
-  const [aiModel, setAiModel] = useState<AiModel>(initialAiModel || 'chatgpt')
+  const [authMethod, setAuthMethod] = useState<AuthMethod | null>(initialAuthMethod)
+  const [aiModel, setAiModel] = useState<AiModel | null>(initialAiModel)
 
   // Track if initial load to skip first auto-save
   const isInitialMount = useRef(true)
@@ -210,6 +209,7 @@ export function DraftEditor({
   }
 
   const handlePublish = () => {
+    if (!authMethod) return // Safety check (canPublish should prevent this)
     setError(null)
     startTransition(async () => {
       const result = await publishList({
@@ -237,7 +237,7 @@ export function DraftEditor({
     })
   }
 
-  const canPublish = name.trim().length > 0 && externalFields.every((f) => f.name && f.label)
+  const canPublish = name.trim().length > 0 && externalFields.every((f) => f.name && f.label) && authMethod !== null
 
   // Note: SuccessView is no longer shown because onPublished navigates immediately
   // Keeping the component in case we want to use it in the future (e.g., modal)
@@ -310,7 +310,7 @@ export function DraftEditor({
             {/* Edit View */}
             <SlidingViewItem>
               <p className={cn('text-sm mb-4', tw.text.muted)}>
-                What data should each entry capture?
+                What data should each entry capture? (Column titles in the list - see preview above.)
               </p>
 
               <div>
@@ -331,7 +331,7 @@ export function DraftEditor({
                     >
                       <div className="flex gap-3">
                         <div className="flex-1">
-                          <Label htmlFor={`field-label-${field._id}`}>Label</Label>
+                          <Label htmlFor={`field-label-${field._id}`}>Column Label</Label>
                           <Input
                             id={`field-label-${field._id}`}
                             value={field.label}
@@ -463,132 +463,164 @@ export function DraftEditor({
           </SlidingView>
         </section>
 
-        {/* Setup Section (AI Assistant + Security) */}
+        {/* Setup Section (Security + AI Assistant) */}
         <section className={cn('p-6 rounded-xl', tw.card.default)}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className={cn('flex items-center gap-2 text-lg font-semibold whitespace-nowrap', tw.text.primary)}>
-              <ColumnHider showWhen={setupSlide === 0} duration={200}>
-                <span>AI Assistant <i className={cn('text-sm', tw.text.muted)}>(you can always change this later)</i></span>
-              </ColumnHider>
-              <ColumnHider showWhen={setupSlide === 1} duration={200}>
-                <span className="flex items-center gap-2">
-                  <span className={tw.text.muted}>{getAiModelInfo(aiModel).label}</span>
-                  <span className={tw.text.muted}>—</span>
-                  <span>Security</span>
-                </span>
-              </ColumnHider>
-            </h2>
-            <ColumnHider showWhen={setupSlide === 1} duration={200}>
-              <button
-                type="button"
-                onClick={() => setSetupSlide(0)}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-sm transition-colors whitespace-nowrap',
-                  tw.bg.hover,
-                  tw.text.secondary,
-                  tw.hover.bg.subtle,
-                  tw.hover.text.primary
-                )}
-              >
-                Change AI
-              </button>
-            </ColumnHider>
-          </div>
-
-          <SlidingView activeIndex={setupSlide} viewCount={2} className="min-h-52">
-            {/* Slide 1: AI Model */}
-            <SlidingViewItem>
-              <p className={cn('text-sm mb-4', tw.text.muted)}>
-                Which AI will add items to this list?
-              </p>
-              <div className="space-y-2">
-                {AI_MODELS.map((model) => (
-                  <label
-                    key={model.value}
-                    className={cn(
-                      'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
-                      aiModel === model.value
-                        ? [tw.border.primary, tw.bg.primaryMuted]
-                        : [tw.border.muted, tw.hover.bg.subtle]
-                    )}
-                  >
-                    <input
-                      type="radio"
-                      name="ai-model"
-                      value={model.value}
-                      checked={aiModel === model.value}
-                      onChange={(e) => {
-                        setAiModel(e.target.value as AiModel)
-                        setSetupSlide(1)
-                      }}
-                      className="sr-only"
-                    />
-                    <div className="flex-1">
-                      <div className={tw.text.primary}>{model.label}</div>
-                      <div className={cn('text-sm', tw.text.muted)}>
-                        Paste to: {model.destination}
-                      </div>
-                    </div>
-                    {aiModel === model.value && (
-                      <CheckIcon className={cn('w-5 h-5', tw.text.primary)} />
-                    )}
-                  </label>
-                ))}
-              </div>
-            </SlidingViewItem>
-
-            {/* Slide 2: Security Method */}
-            <SlidingViewItem>
+          {/* Security Selection */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={cn('text-lg font-semibold', tw.text.primary)}>
+                Security
+              </h2>
+              {authMethod && (
+                <button
+                  type="button"
+                  onClick={() => setAuthMethod(null)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-lg text-sm transition-colors',
+                    tw.bg.hover,
+                    tw.text.secondary,
+                    tw.hover.bg.subtle,
+                    tw.hover.text.primary
+                  )}
+                >
+                  Change
+                </button>
+              )}
+            </div>
+            
+            <RowHider showWhen={!authMethod} duration={200}>
               <p className={cn('text-sm mb-4', tw.text.muted)}>
                 How should requests be authenticated?
               </p>
+            </RowHider>
+
+            <div className="space-y-2">
+              {AUTH_METHODS.map((method) => {
+                const isDisabled = !method.implemented
+                const isSelected = authMethod === method.value && !isDisabled
+                const isTokenMethod = method.value === 'token'
+                const showOption = !authMethod || isSelected
+                
+                return (
+                  <RowHider key={method.value} showWhen={showOption} duration={200}>
+                    <div>
+                      <label
+                        className={cn(
+                          'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                          isDisabled && 'opacity-50 cursor-not-allowed',
+                          isSelected
+                            ? isTokenMethod 
+                              ? [tw.border.warning, tw.bg.warningMuted]
+                              : [tw.border.primary, tw.bg.primaryMuted]
+                            : [tw.border.muted, !isDisabled && tw.hover.bg.subtle]
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="auth-method"
+                          value={method.value}
+                          checked={authMethod === method.value}
+                          onChange={(e) => setAuthMethod(e.target.value as AuthMethod)}
+                          disabled={isDisabled}
+                          className="sr-only"
+                        />
+                        <div className="flex-1">
+                          <div className={cn('font-medium', tw.text.primary)}>
+                            {method.label}
+                            {isDisabled && (
+                              <span className={cn('ml-2 text-xs font-normal', tw.text.muted)}>
+                                (Coming soon)
+                              </span>
+                            )}
+                          </div>
+                          <div className={cn('text-sm mt-1', tw.text.muted)}>
+                            {method.description}
+                          </div>
+                        </div>
+                        {isSelected && (
+                          isTokenMethod 
+                            ? <AlertTriangle className={cn('w-5 h-5 mt-0.5', tw.text.warning)} />
+                            : <CheckIcon className={cn('w-5 h-5 mt-0.5', tw.text.primary)} />
+                        )}
+                      </label>
+                      {/* Warning message for token auth */}
+                      <RowHider showWhen={isSelected && isTokenMethod} duration={200}>
+                        <div className={cn('mt-2 p-3 rounded-lg text-sm', tw.bg.warningMuted, tw.text.warning)}>
+                          <a 
+                            href="https://github.com/moefingers/ai-get-interface/issues/1" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="underline font-medium"
+                          >
+                            Known issue #1
+                          </a>
+                          : AI currently refuse to fetch on initial request. Currently implemented work around is forcing AI to ask for confirmation before executing. AI still frequently refuses browsing the link. Try at your own risk.
+                        </div>
+                      </RowHider>
+                    </div>
+                  </RowHider>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* AI Assistant Selection (expands after security is selected) */}
+          <RowHider showWhen={authMethod !== null} duration={200}>
+            <div className={cn('pt-4 border-t', tw.border.muted)}>
+              <h3 className={cn('text-lg font-semibold mb-1', tw.text.primary)}>
+                AI Assistant <span className={cn('text-sm font-normal', tw.text.muted)}>(optional)</span>
+              </h3>
+              <p className={cn('text-sm mb-4', tw.text.muted)}>
+                Which AI will add items to this list? You can change this later.
+              </p>
               <div className="space-y-2">
-                {AUTH_METHODS.map((method) => {
-                  // Disable unimplemented auth methods
-                  const isDisabled = !method.implemented
+                {AI_MODELS.map((model) => {
+                  const isGoogleAssistant = model.value === 'google-assistant'
+                  const isDisabled = isGoogleAssistant
                   
                   return (
                     <label
-                      key={method.value}
+                      key={model.value}
                       className={cn(
-                        'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                        'flex items-center gap-3 p-3 rounded-lg border transition-colors',
                         isDisabled && 'opacity-50 cursor-not-allowed',
-                        authMethod === method.value && !isDisabled
+                        !isDisabled && 'cursor-pointer',
+                        aiModel === model.value && !isDisabled
                           ? [tw.border.primary, tw.bg.primaryMuted]
                           : [tw.border.muted, !isDisabled && tw.hover.bg.subtle]
                       )}
                     >
                       <input
                         type="radio"
-                        name="auth-method"
-                        value={method.value}
-                        checked={authMethod === method.value}
-                        onChange={(e) => setAuthMethod(e.target.value as AuthMethod)}
+                        name="ai-model"
+                        value={model.value}
+                        checked={aiModel === model.value}
+                        onChange={(e) => setAiModel(e.target.value as AiModel)}
                         disabled={isDisabled}
                         className="sr-only"
                       />
                       <div className="flex-1">
-                        <div className={cn('font-medium', tw.text.primary)}>
-                          {method.label}
+                        <div className={tw.text.primary}>
+                          {model.label}
                           {isDisabled && (
                             <span className={cn('ml-2 text-xs font-normal', tw.text.muted)}>
                               (Coming soon)
                             </span>
                           )}
                         </div>
-                        <div className={cn('text-sm mt-1', tw.text.muted)}>
-                          {method.description}
+                        <div className={cn('text-sm', tw.text.muted)}>
+                          Paste to: {model.destination}
                         </div>
                       </div>
-                      {authMethod === method.value && !isDisabled && (
-                        <CheckIcon className={cn('w-5 h-5 mt-0.5', tw.text.primary)} />
+                      {aiModel === model.value && !isDisabled && (
+                        <CheckIcon className={cn('w-5 h-5', tw.text.primary)} />
                       )}
                     </label>
                   )
                 })}
               </div>
-            </SlidingViewItem>
-          </SlidingView>
+            </div>
+          </RowHider>
         </section>
 
         {/* Error */}

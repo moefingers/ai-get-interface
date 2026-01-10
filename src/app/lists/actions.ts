@@ -31,7 +31,7 @@ export interface PublishListInput {
   listId: string
   name: string
   authMethod: AuthMethod
-  aiModel: AiModel
+  aiModel: AiModel | null
   fields: ListFieldDefinition[]
 }
 
@@ -140,7 +140,7 @@ export async function deleteDraft(listId: string): Promise<{ success: boolean; e
 export interface UpdateDraftInput {
   listId: string
   name?: string
-  aiModel?: AiModel
+  aiModel?: AiModel | null
   fields?: ListFieldDefinition[]
 }
 

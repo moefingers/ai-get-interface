@@ -194,7 +194,7 @@ export type ListGroupByOutputType = {
   aiModel: string | null
   isDraft: boolean
   isActive: boolean
-  authMethod: string
+  authMethod: string | null
   createdAt: Date
   updatedAt: Date
   userId: string
@@ -230,7 +230,7 @@ export type ListWhereInput = {
   aiModel?: Prisma.StringNullableFilter<"List"> | string | null
   isDraft?: Prisma.BoolFilter<"List"> | boolean
   isActive?: Prisma.BoolFilter<"List"> | boolean
-  authMethod?: Prisma.StringFilter<"List"> | string
+  authMethod?: Prisma.StringNullableFilter<"List"> | string | null
   createdAt?: Prisma.DateTimeFilter<"List"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"List"> | Date | string
   userId?: Prisma.StringFilter<"List"> | string
@@ -247,7 +247,7 @@ export type ListOrderByWithRelationInput = {
   aiModel?: Prisma.SortOrderInput | Prisma.SortOrder
   isDraft?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
-  authMethod?: Prisma.SortOrder
+  authMethod?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -268,7 +268,7 @@ export type ListWhereUniqueInput = Prisma.AtLeast<{
   aiModel?: Prisma.StringNullableFilter<"List"> | string | null
   isDraft?: Prisma.BoolFilter<"List"> | boolean
   isActive?: Prisma.BoolFilter<"List"> | boolean
-  authMethod?: Prisma.StringFilter<"List"> | string
+  authMethod?: Prisma.StringNullableFilter<"List"> | string | null
   createdAt?: Prisma.DateTimeFilter<"List"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"List"> | Date | string
   userId?: Prisma.StringFilter<"List"> | string
@@ -285,7 +285,7 @@ export type ListOrderByWithAggregationInput = {
   aiModel?: Prisma.SortOrderInput | Prisma.SortOrder
   isDraft?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
-  authMethod?: Prisma.SortOrder
+  authMethod?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -306,7 +306,7 @@ export type ListScalarWhereWithAggregatesInput = {
   aiModel?: Prisma.StringNullableWithAggregatesFilter<"List"> | string | null
   isDraft?: Prisma.BoolWithAggregatesFilter<"List"> | boolean
   isActive?: Prisma.BoolWithAggregatesFilter<"List"> | boolean
-  authMethod?: Prisma.StringWithAggregatesFilter<"List"> | string
+  authMethod?: Prisma.StringNullableWithAggregatesFilter<"List"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"List"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"List"> | Date | string
   userId?: Prisma.StringWithAggregatesFilter<"List"> | string
@@ -321,7 +321,7 @@ export type ListCreateInput = {
   aiModel?: string | null
   isDraft?: boolean
   isActive?: boolean
-  authMethod?: string
+  authMethod?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutListsInput
@@ -337,7 +337,7 @@ export type ListUncheckedCreateInput = {
   aiModel?: string | null
   isDraft?: boolean
   isActive?: boolean
-  authMethod?: string
+  authMethod?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   userId: string
@@ -353,7 +353,7 @@ export type ListUpdateInput = {
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  authMethod?: Prisma.StringFieldUpdateOperationsInput | string
+  authMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutListsNestedInput
@@ -369,7 +369,7 @@ export type ListUncheckedUpdateInput = {
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  authMethod?: Prisma.StringFieldUpdateOperationsInput | string
+  authMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -385,7 +385,7 @@ export type ListCreateManyInput = {
   aiModel?: string | null
   isDraft?: boolean
   isActive?: boolean
-  authMethod?: string
+  authMethod?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   userId: string
@@ -400,7 +400,7 @@ export type ListUpdateManyMutationInput = {
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  authMethod?: Prisma.StringFieldUpdateOperationsInput | string
+  authMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -414,7 +414,7 @@ export type ListUncheckedUpdateManyInput = {
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  authMethod?: Prisma.StringFieldUpdateOperationsInput | string
+  authMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -552,7 +552,7 @@ export type ListCreateWithoutUserInput = {
   aiModel?: string | null
   isDraft?: boolean
   isActive?: boolean
-  authMethod?: string
+  authMethod?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.ListItemCreateNestedManyWithoutListInput
@@ -567,7 +567,7 @@ export type ListUncheckedCreateWithoutUserInput = {
   aiModel?: string | null
   isDraft?: boolean
   isActive?: boolean
-  authMethod?: string
+  authMethod?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.ListItemUncheckedCreateNestedManyWithoutListInput
@@ -611,7 +611,7 @@ export type ListScalarWhereInput = {
   aiModel?: Prisma.StringNullableFilter<"List"> | string | null
   isDraft?: Prisma.BoolFilter<"List"> | boolean
   isActive?: Prisma.BoolFilter<"List"> | boolean
-  authMethod?: Prisma.StringFilter<"List"> | string
+  authMethod?: Prisma.StringNullableFilter<"List"> | string | null
   createdAt?: Prisma.DateTimeFilter<"List"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"List"> | Date | string
   userId?: Prisma.StringFilter<"List"> | string
@@ -626,7 +626,7 @@ export type ListCreateWithoutItemsInput = {
   aiModel?: string | null
   isDraft?: boolean
   isActive?: boolean
-  authMethod?: string
+  authMethod?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutListsInput
@@ -641,7 +641,7 @@ export type ListUncheckedCreateWithoutItemsInput = {
   aiModel?: string | null
   isDraft?: boolean
   isActive?: boolean
-  authMethod?: string
+  authMethod?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   userId: string
@@ -672,7 +672,7 @@ export type ListUpdateWithoutItemsInput = {
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  authMethod?: Prisma.StringFieldUpdateOperationsInput | string
+  authMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutListsNestedInput
@@ -687,7 +687,7 @@ export type ListUncheckedUpdateWithoutItemsInput = {
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  authMethod?: Prisma.StringFieldUpdateOperationsInput | string
+  authMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -702,7 +702,7 @@ export type ListCreateManyUserInput = {
   aiModel?: string | null
   isDraft?: boolean
   isActive?: boolean
-  authMethod?: string
+  authMethod?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -716,7 +716,7 @@ export type ListUpdateWithoutUserInput = {
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  authMethod?: Prisma.StringFieldUpdateOperationsInput | string
+  authMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.ListItemUpdateManyWithoutListNestedInput
@@ -731,7 +731,7 @@ export type ListUncheckedUpdateWithoutUserInput = {
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  authMethod?: Prisma.StringFieldUpdateOperationsInput | string
+  authMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.ListItemUncheckedUpdateManyWithoutListNestedInput
@@ -746,7 +746,7 @@ export type ListUncheckedUpdateManyWithoutUserInput = {
   aiModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  authMethod?: Prisma.StringFieldUpdateOperationsInput | string
+  authMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -906,7 +906,7 @@ export type $ListPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * 'token' = static token in URL (simple, anyone with URL can add)
      * 'google' = Google Apps Script relay (requires Google identity)
      */
-    authMethod: string
+    authMethod: string | null
     createdAt: Date
     updatedAt: Date
     userId: string

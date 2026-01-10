@@ -32,7 +32,7 @@ const TRAY_ANIMATION_MS = 300
 
 export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSettingsTrayProps) {
   const router = useRouter()
-  const [selectedModel, setSelectedModel] = useState<AiModel>('chatgpt')
+  const [selectedModel, setSelectedModel] = useState<AiModel>((list.aiModel as AiModel) ?? 'chatgpt')
   const [selectedStyle, setSelectedStyle] = useState<InstructionStyle>(
     // Default to 'browser' for session auth (fetch won't work), otherwise 'fetch'
     list.authMethod === 'session' ? 'browser' : 'fetch'
@@ -47,11 +47,15 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
   useEffect(() => {
     setEditName(list.name)
     setIsEditing(false)
+    // Sync AI model from list data
+    if (list.aiModel) {
+      setSelectedModel(list.aiModel as AiModel)
+    }
     // Reset style based on auth method
     if (list.authMethod === 'session' && selectedStyle === 'fetch') {
       setSelectedStyle('browser')
     }
-  }, [list.id, list.name, list.authMethod, selectedStyle])
+  }, [list.id, list.name, list.authMethod, list.aiModel, selectedStyle])
 
   // Filter available instruction styles based on auth method
   // Session auth requires browser interaction - fetch won't have session cookies

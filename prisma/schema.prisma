@@ -76,7 +76,7 @@ model List {
   /// Authentication method for AI access
   /// 'token' = static token in URL (simple, anyone with URL can add)
   /// 'google' = Google Apps Script relay (requires Google identity)
-  authMethod  String   @default("token") @map("auth_method")
+  authMethod  String?  @map("auth_method")
   
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
