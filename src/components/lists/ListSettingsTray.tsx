@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, Copy, Check, ChevronDown, AlertTriangle, Pencil } from 'lucide-react'
+import { X, Copy, Check, ChevronDown, AlertTriangle, Pencil, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
 import { RowHider, SlidingView, SlidingViewItem } from '@/components/ui'
@@ -386,6 +386,27 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
               </a>
             </div>
 
+            {/* Gemini browser warning */}
+            <RowHider showWhen={selectedModel === 'gemini' && selectedStyle === 'browser'}>
+              <div className={cn(
+                'mb-3 px-3 py-2 rounded-lg border text-xs',
+                tw.border.warning,
+                tw.bg.warningMuted,
+                tw.text.warning
+              )}>
+                <span>Gemini may claim success without opening browser unless you say [open | launch] [browser | chrome]. </span>
+                <a
+                  href="https://github.com/moefingers/ai-get-interface/issues/3"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn('inline-flex items-center gap-1 underline', tw.hover.text.primary)}
+                >
+                  Known issue #3
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </RowHider>
+
             {/* Instructions preview */}
             <div className={cn('rounded-lg border', tw.border.default, tw.bg.main)}>
               <pre className={cn(
@@ -449,8 +470,8 @@ function ModelSelector({ models, selected, onChange }: ModelSelectorProps) {
           )}>
             {models.map((model) => {
               const isGoogleAssistant = model.value === 'google-assistant'
-              // const isDisabled = isGoogleAssistant
-              const isDisabled = false
+              const isDisabled = isGoogleAssistant
+              // const isDisabled = false
 
               
               return (
