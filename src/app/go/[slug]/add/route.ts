@@ -29,8 +29,11 @@ const corsHeaders = {
 }
 
 // Helper to create HTML response with CORS (for AI readability)
-function successHtml(message: string, details?: string): NextResponse {
-  return new NextResponse(
+function successHtml(message: string, details?: string, listSlug?: string): NextResponse {
+  const listLink = listSlug 
+    ? `<a href="/lists/${listSlug}" style="color:#3fb950;text-decoration:underline;">View list</a>` 
+    : ''
+  const response = new NextResponse(
     `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>Success</title></head>
@@ -39,16 +42,21 @@ function successHtml(message: string, details?: string): NextResponse {
     <h1 style="font-size:4rem;margin:0;">✓</h1>
     <h2>${message}</h2>
     ${details ? `<p style="color:#8b949e;">${details}</p>` : ''}
-    <p style="color:#6e7681;margin-top:2rem;font-size:0.875rem;">You may close this tab.</p>
+    <p style="color:#6e7681;margin-top:2rem;font-size:0.875rem;">You may close this tab. ${listLink}</p>
   </div>
 </body>
 </html>`,
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' } }
   )
+  response.cookies.set('auth_return_to', '', { maxAge: 0, path: '/' })
+  return response
 }
 
-function warningHtml(message: string, details?: string): NextResponse {
-  return new NextResponse(
+function warningHtml(message: string, details?: string, listSlug?: string): NextResponse {
+  const listLink = listSlug 
+    ? `<a href="/lists/${listSlug}" style="color:#d29922;text-decoration:underline;">View list</a>` 
+    : ''
+  const response = new NextResponse(
     `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>Warning</title></head>
@@ -57,16 +65,21 @@ function warningHtml(message: string, details?: string): NextResponse {
     <h1 style="font-size:4rem;margin:0;">⚠</h1>
     <h2>${message}</h2>
     ${details ? `<p style="color:#8b949e;">${details}</p>` : ''}
-    <p style="color:#6e7681;margin-top:2rem;font-size:0.875rem;">You may close this tab.</p>
+    <p style="color:#6e7681;margin-top:2rem;font-size:0.875rem;">You may close this tab. ${listLink}</p>
   </div>
 </body>
 </html>`,
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' } }
   )
+  response.cookies.set('auth_return_to', '', { maxAge: 0, path: '/' })
+  return response
 }
 
-function errorHtml(message: string, details?: string, status: number = 400): NextResponse {
-  return new NextResponse(
+function errorHtml(message: string, details?: string, status: number = 400, listSlug?: string): NextResponse {
+  const listLink = listSlug 
+    ? `<a href="/lists/${listSlug}" style="color:#f85149;text-decoration:underline;">View list</a>` 
+    : ''
+  const response = new NextResponse(
     `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>Error</title></head>
@@ -75,11 +88,14 @@ function errorHtml(message: string, details?: string, status: number = 400): Nex
     <h1 style="font-size:4rem;margin:0;">✗</h1>
     <h2>${message}</h2>
     ${details ? `<p style="color:#8b949e;">${details}</p>` : ''}
+    <p style="color:#6e7681;margin-top:2rem;font-size:0.875rem;">${listLink}</p>
   </div>
 </body>
 </html>`,
     { status, headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' } }
   )
+  response.cookies.set('auth_return_to', '', { maxAge: 0, path: '/' })
+  return response
 }
 
 interface RouteParams {
@@ -117,11 +133,11 @@ export async function GET(
 
   // 4. Check list is published and active
   if (list.isDraft) {
-    return errorHtml('List is not published', 'This list is still a draft', 404)
+    return errorHtml('List is not published', 'This list is still a draft', 404, slug)
   }
 
   if (!list.isActive) {
-    return errorHtml('List is not active', 'This list has been deactivated', 404)
+    return errorHtml('List is not active', 'This list has been deactivated', 404, slug)
   }
 
   // 5. Validate authentication based on list's authMethod and provided params
@@ -132,7 +148,7 @@ export async function GET(
     isAuthorized = staticToken === list.authToken
     if (!isAuthorized) {
       console.log(`[GO] Invalid static token for list ${slug}`)
-      return errorHtml('Invalid token', 'The provided token is incorrect', 401)
+      return errorHtml('Invalid token', 'The provided token is incorrect', 401, slug)
     }
   } else if (timeCode) {
     // HMAC time code auth: validate against user's seed (dormant feature)
@@ -143,7 +159,7 @@ export async function GET(
     )
     if (!isAuthorized) {
       console.log(`[GO] Invalid time code for list ${slug}`)
-      return errorHtml('Invalid or expired code', 'The time code is incorrect or has expired', 401)
+      return errorHtml('Invalid or expired code', 'The time code is incorrect or has expired', 401, slug)
     }
   } else if (list.authMethod === 'session') {
     // Session auth: check if user is logged in and owns this list
@@ -166,14 +182,14 @@ export async function GET(
     // Check if logged-in user owns this list
     if (stackUser.id !== list.user.stackAuthId) {
       console.log(`[GO] Session user ${stackUser.id} does not own list ${slug} (owner: ${list.user.stackAuthId})`)
-      return errorHtml('Not authorized', 'You do not own this list', 403)
+      return errorHtml('Not authorized', 'You do not own this list', 403, slug)
     }
     
     isAuthorized = true
     console.log(`[GO] Session auth successful for list ${slug}`)
   } else {
     // No auth provided and list doesn't use session auth
-    return errorHtml('Missing authentication', 'A token parameter is required', 401)
+    return errorHtml('Missing authentication', 'A token parameter is required', 401, slug)
   }
 
   // 6. Parse and validate field data
@@ -191,7 +207,7 @@ export async function GET(
 
   const validation = validateItemData(queryParams, fields)
   if (!validation.valid) {
-    return errorHtml('Validation failed', validation.errors.join(', '), 400)
+    return errorHtml('Validation failed', validation.errors.join(', '), 400, slug)
   }
 
   // 7. Check for duplicates (same content within same minute)
@@ -220,7 +236,7 @@ export async function GET(
       const contentPreview = Object.entries(validation.data)
         .map(([k, v]) => `${fieldLabelMap[k] || k}: ${v}`)
         .join(', ')
-      return warningHtml('Item already exists', `Duplicate skipped: ${contentPreview}`)
+      return warningHtml('Item already exists', `Duplicate skipped: ${contentPreview}`, slug)
     }
   }
 
@@ -240,5 +256,5 @@ export async function GET(
   const contentPreview = Object.entries(item.content as Record<string, unknown>)
     .map(([k, v]) => `${fieldLabelMap[k] || k}: ${v}`)
     .join(', ')
-  return successHtml(`Added to ${list.name}`, contentPreview)
+  return successHtml(`Added to ${list.name}`, contentPreview, slug)
 }
