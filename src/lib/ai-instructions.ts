@@ -321,7 +321,6 @@ function generateSessionInstructions(
 
   // Session auth requires browser interaction - default to 'browser', fall back from 'fetch'
   const style = params.style === 'fetch' ? 'browser' : (params.style ?? 'browser')
-  const sessionNote = 'Note: I must be logged in for this link to work.'
   const encodeNote = 'URL-encode special characters (spaces become %20 or +).'
 
   switch (model) {
@@ -336,8 +335,7 @@ URL Template: ${url}
 Fields:
 ${fieldDefs}
 
-${encodeNote}
-${sessionNote}`.trim()
+${encodeNote}`.trim()
       }
       // browser style
       return `When I mention "${listName}" or ask to add something to it:
@@ -350,8 +348,7 @@ URL Template: ${url}
 Fields:
 ${fieldDefs}
 
-${encodeNote}
-${sessionNote}`.trim()
+${encodeNote}`.trim()
 
     case 'chatgpt':
       // ChatGPT can only do 'link' for session auth (no browser capability)
@@ -370,9 +367,7 @@ ${fieldDefs}
 ${encodeNote}
 
 **Example:** "add milk to ${listName}" → provide link:
-${exampleUrl}
-
-${sessionNote}`.trim()
+${exampleUrl}`.trim()
 
     case 'google-assistant':
       return `# Voice Command: ${listName}
@@ -386,9 +381,7 @@ ${fieldDefs}
 
 When triggered:
 1. Build the URL with spoken values
-2. Open the URL in my browser
-
-${sessionNote}`.trim()
+2. Open the URL in my browser`.trim()
 
     default:
       return generateSessionInstructions('chatgpt', params)
