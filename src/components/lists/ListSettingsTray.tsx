@@ -449,7 +449,9 @@ function ModelSelector({ models, selected, onChange }: ModelSelectorProps) {
           )}>
             {models.map((model) => {
               const isGoogleAssistant = model.value === 'google-assistant'
-              const isDisabled = isGoogleAssistant
+              // const isDisabled = isGoogleAssistant
+              const isDisabled = false
+
               
               return (
                 <button

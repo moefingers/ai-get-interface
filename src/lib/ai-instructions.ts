@@ -173,11 +173,7 @@ ${fieldDefs}
 When triggered:
 1. Build the URL with spoken values
 2. Browse to the URL
-3. Read the page title or main text to confirm success
-
-Example responses:
-- Success: "Added {item} to ${listName}"
-- Failure: "Sorry, couldn't add that to ${listName}"
+3. Read the page to the user
 `.trim()
 
     default:
@@ -391,7 +387,6 @@ ${fieldDefs}
 When triggered:
 1. Build the URL with spoken values
 2. Open the URL in my browser
-3. Say: "Opening ${listName} to add {item}"
 
 ${sessionNote}`.trim()
 
