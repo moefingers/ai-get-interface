@@ -32,7 +32,7 @@ export function UserMenu() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative group">
       {/* Hidden checkbox for CSS-only toggle */}
       <input type="checkbox" id="user-menu-toggle" className="peer sr-only" />
       
@@ -57,7 +57,7 @@ export function UserMenu() {
         <span className={cn('flex-1 text-left truncate', tw.text.primary)}>
           {user.displayName || user.primaryEmail || 'User'}
         </span>
-        <ChevronIcon className={cn('w-4 h-4 transition-transform', tw.text.muted, 'peer-checked:rotate-90')} />
+        <ChevronIcon className={cn('w-4 h-4 transition-transform', tw.text.muted, 'group-has-[:checked]:rotate-90')} />
       </label>
 
       {/* Dropdown menu - shown when peer checkbox is checked */}
