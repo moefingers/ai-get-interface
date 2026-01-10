@@ -88,6 +88,9 @@ function LandingPage() {
                 Get Started Free
               </Link>
             </div>
+            <p className={cn('text-sm mt-4', tw.text.muted)}>
+              Don&apos;t want to use AI? The app works great independently!
+            </p>
           </div>
           <div className={cn('p-8 rounded-2xl', tw.bg.card, 'border', tw.border.default)}>
             <div className={cn('space-y-4', tw.text.secondary)}>
