@@ -57,11 +57,14 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
     }
   }, [list.id, list.name, list.authMethod, list.aiModel, selectedStyle])
 
-  // Filter available instruction styles based on auth method
+  // Filter available instruction styles based on auth method and model
   // Session auth requires browser interaction - fetch won't have session cookies
-  const availableStyles = list.authMethod === 'session'
-    ? INSTRUCTION_STYLES.filter(s => s.value !== 'fetch')
-    : INSTRUCTION_STYLES
+  // ChatGPT can't open browser - only Gemini has that capability
+  const availableStyles = INSTRUCTION_STYLES.filter(s => {
+    if (list.authMethod === 'session' && s.value === 'fetch') return false
+    if (selectedModel === 'chatgpt' && s.value === 'browser') return false
+    return true
+  })
 
   // Parse fields from JSON
   const fields: ListFieldDefinition[] = (() => {
@@ -444,24 +447,34 @@ function ModelSelector({ models, selected, onChange }: ModelSelectorProps) {
             tw.bg.elevated,
             tw.border.default
           )}>
-            {models.map((model) => (
-              <button
-                key={model.value}
-                type="button"
-                onClick={() => {
-                  onChange(model.value)
-                  setIsOpen(false)
-                }}
-                className={cn(
-                  'w-full text-left px-3 py-1.5 text-sm',
-                  selected === model.value ? tw.text.accent : tw.text.primary,
-                  tw.hover.bg.subtle,
-                  'transition-colors'
-                )}
-              >
-                {model.label}
-              </button>
-            ))}
+            {models.map((model) => {
+              const isGoogleAssistant = model.value === 'google-assistant'
+              const isDisabled = isGoogleAssistant
+              
+              return (
+                <button
+                  key={model.value}
+                  type="button"
+                  onClick={() => {
+                    if (!isDisabled) {
+                      onChange(model.value)
+                      setIsOpen(false)
+                    }
+                  }}
+                  disabled={isDisabled}
+                  className={cn(
+                    'w-full text-left px-3 py-1.5 text-sm',
+                    isDisabled && 'opacity-30 cursor-not-allowed',
+                    selected === model.value && !isDisabled ? tw.text.accent : tw.text.primary,
+                    !isDisabled && tw.hover.bg.subtle,
+                    'transition-colors'
+                  )}
+                >
+                  {model.label}
+                  
+                </button>
+              )
+            })}
           </div>
         </>
       )}
@@ -477,7 +490,18 @@ interface StyleSelectorProps {
 
 function StyleSelector({ styles, selected, onChange }: StyleSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const selectedInfo = styles.find((s) => s.value === selected)!
+  // Fallback to first style if selected is not in available styles (can happen during model switch)
+  const selectedInfo = styles.find((s) => s.value === selected) ?? styles[0]
+  const effectiveSelected = selectedInfo?.value ?? selected
+
+  // Auto-correct if the selected style isn't available
+  useEffect(() => {
+    if (!styles.find((s) => s.value === selected) && styles.length > 0) {
+      onChange(styles[0].value)
+    }
+  }, [styles, selected, onChange])
+
+  if (!selectedInfo) return null
 
   return (
     <div className="relative">
@@ -524,7 +548,7 @@ function StyleSelector({ styles, selected, onChange }: StyleSelectorProps) {
                 }}
                 className={cn(
                   'w-full text-left px-3 py-2 text-sm',
-                  selected === style.value ? tw.text.accent : tw.text.primary,
+                  effectiveSelected === style.value ? tw.text.accent : tw.text.primary,
                   tw.hover.bg.subtle,
                   'transition-colors'
                 )}
