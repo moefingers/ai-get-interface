@@ -554,7 +554,7 @@ export function DraftEditor({
                           >
                             Known issue #1
                           </a>
-                          : AI currently refuse to fetch on initial request. Currently implemented work around is forcing AI to ask for confirmation before executing. AI still frequently refuses browsing the link. Try at your own risk.
+                          : AI currently refuse to fetch on initial request. Currently implemented work around is forcing AI to ask for confirmation before executing or to not use an option which opens browser directly. AI still frequently refuses browsing the link. Try at your own risk.
                         </div>
                       </RowHider>
                     </div>
