@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import { useUser, useStackApp } from '@stackframe/stack'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
@@ -7,6 +8,21 @@ import { tw } from '@/lib/tw-theme'
 export function UserMenu() {
   const user = useUser()
   const app = useStackApp()
+  const [isOpen, setIsOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close on click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   if (!user) {
     return (
@@ -32,8 +48,9 @@ export function UserMenu() {
   }
 
   return (
-    <div className="relative group">
+    <div className="relative" ref={menuRef}>
       <button
+        onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'w-full flex items-center gap-3 px-3 py-2 rounded-lg',
           tw.btn.ghost
@@ -52,34 +69,37 @@ export function UserMenu() {
         <span className={cn('flex-1 text-left truncate', tw.text.primary)}>
           {user.displayName || user.primaryEmail || 'User'}
         </span>
-        <ChevronIcon className={cn('w-4 h-4', tw.text.muted)} />
+        <ChevronIcon className={cn('w-4 h-4 transition-transform', tw.text.muted, isOpen && 'rotate-90')} />
       </button>
 
-      {/* Dropdown menu - appears on hover/focus */}
-      <div
-        className={cn(
-          'absolute bottom-full left-0 right-0 mb-1',
-          'opacity-0 invisible group-hover:opacity-100 group-hover:visible',
-          'transition-all duration-150',
-          tw.bg.elevated,
-          'border',
-          tw.border.default,
-          'rounded-lg shadow-lg',
-          'py-1'
-        )}
-      >
-        <button
-          onClick={() => app.signOut()}
+      {/* Dropdown menu */}
+      {isOpen && (
+        <div
           className={cn(
-            'w-full flex items-center gap-2 px-3 py-2',
-            tw.hover.bg.subtle,
-            tw.text.secondary
+            'absolute bottom-full left-0 right-0 mb-1',
+            tw.bg.elevated,
+            'border',
+            tw.border.default,
+            'rounded-lg shadow-lg',
+            'py-1'
           )}
         >
-          <LogOutIcon className="w-4 h-4" />
-          <span>Sign out</span>
-        </button>
-      </div>
+          <button
+            onClick={() => {
+              app.signOut()
+              setIsOpen(false)
+            }}
+            className={cn(
+              'w-full flex items-center gap-2 px-3 py-2',
+              tw.hover.bg.subtle,
+              tw.text.secondary
+            )}
+          >
+            <LogOutIcon className="w-4 h-4" />
+            <span>Sign out</span>
+          </button>
+        </div>
+      )}
     </div>
   )
 }
