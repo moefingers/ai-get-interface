@@ -51,11 +51,9 @@ export function ListSettingsTray({ list, isOpen, onClose, onRenamed }: ListSetti
     if (list.aiModel) {
       setSelectedModel(list.aiModel as AiModel)
     }
-    // Reset style based on auth method
-    if (list.authMethod === 'session' && selectedStyle === 'fetch') {
-      setSelectedStyle('browser')
-    }
-  }, [list.id, list.name, list.authMethod, list.aiModel, selectedStyle])
+    // Reset style based on auth method (default to browser for session, fetch otherwise)
+    setSelectedStyle(list.authMethod === 'session' ? 'browser' : 'fetch')
+  }, [list.id, list.name, list.authMethod, list.aiModel])
 
   // Filter available instruction styles based on auth method and model
   // Session auth requires browser interaction - fetch won't have session cookies
