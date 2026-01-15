@@ -200,6 +200,7 @@ export function ListPageClient({ userName, currentList, allLists }: ListPageClie
           />
 
           <ListInputBar
+            listId={currentList.id}
             listName={currentList.name}
             fields={fields}
             isSettingsOpen={isSettingsOpen}

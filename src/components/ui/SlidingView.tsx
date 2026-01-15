@@ -16,6 +16,12 @@ export interface SlidingViewProps {
   innerClassName?: string
   /** Transition duration in ms (default: 300) */
   duration?: number
+  /** 
+   * When true, container height adapts to active view's content.
+   * Each view can have independent natural height.
+   * Views not visible are clipped via overflow.
+   */
+  autoHeight?: boolean
 }
 
 /**
@@ -39,12 +45,14 @@ export function SlidingView({
   className,
   innerClassName,
   duration = 300,
+  autoHeight = false,
 }: SlidingViewProps) {
   return (
-    <div className={cn('overflow-hidden w-full h-full', className)}>
+    <div className={cn('overflow-hidden w-full', !autoHeight && 'h-full', className)}>
       <div
         className={cn(
-          'flex h-full transition-transform ease-out',
+          'flex transition-transform ease-out',
+          !autoHeight && 'h-full',
           viewCount === 1 && 'w-full',
           viewCount === 2 && 'w-[200%]',
           viewCount === 3 && 'w-[300%]',
@@ -78,15 +86,17 @@ export function SlidingView({
 interface SlidingViewItemProps {
   children: ReactNode
   className?: string
+  /** When true (default false), allows natural height instead of h-full */
+  autoHeight?: boolean
 }
 
 /**
  * SlidingViewItem - Individual view within a SlidingView.
  * Takes up full width of the visible area.
  */
-export function SlidingViewItem({ children, className }: SlidingViewItemProps) {
+export function SlidingViewItem({ children, className, autoHeight = false }: SlidingViewItemProps) {
   return (
-    <div className={cn('flex-1 min-w-0 h-full overflow-auto', className)}>
+    <div className={cn('flex-1 min-w-0 overflow-auto', !autoHeight && 'h-full', className)}>
       {children}
     </div>
   )

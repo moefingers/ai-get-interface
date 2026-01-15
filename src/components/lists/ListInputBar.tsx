@@ -8,6 +8,7 @@ import { NumberInput } from '@/components/ui'
 import type { ListFieldDefinition } from '@/types/list-fields'
 
 export interface ListInputBarProps {
+  listId: string
   listName: string
   fields: ListFieldDefinition[]
   isSettingsOpen: boolean
@@ -17,6 +18,7 @@ export interface ListInputBarProps {
 }
 
 export function ListInputBar({
+  listId,
   listName,
   fields,
   isSettingsOpen,
@@ -108,6 +110,8 @@ export function ListInputBar({
                   onChange={(v) => handleChange(field.name, v)}
                   placeholder={field.label + (field.required ? '' : ' (optional)')}
                   onKeyDown={handleKeyDown}
+                  listId={listId}
+                  fieldName={field.name}
                   className={cn(
                     'flex-1 min-w-0',
                     idx > 0 && ['border-l pl-2', tw.border.muted]
