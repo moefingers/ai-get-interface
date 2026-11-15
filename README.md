@@ -41,3 +41,7 @@ The server validates auth, appends the item, and your list updates instantly.
 
 Next.js 16 · React 19 · Prisma 7 + Neon · Tailwind 4 · Stack Auth
 
+## Dependencies
+
+`@stackframe/stack` is pinned exactly at `2.8.72`; the other dependencies keep their carets. From 2.8.75, Stack's SDK starts its click and page-view tracker for every project (Stack commit `59a65bb`); in 2.8.72 it runs only for Stack's own project. So moving Stack past 2.8.72 is its own change: read that commit first, and the `analytics: { enabled: false }` option, which arrives in 2.8.91. Don't let `pnpm up --latest` move it unread.
+
