@@ -1,7 +1,7 @@
 // Shared relay - all users use this same deployment
 const CONFIG = {
   API_BASE: 'https://ai-get-interface.vercel.app',
-  API_KEY: '8460f3f599c95d9b55701266ec827da6b6d7f414a07912aff8d93ee0b688c470' // Or use PropertiesService
+  API_KEY: 'YOUR_API_KEY' // Or use PropertiesService
 };
 // HEY GUYS LOOK AT ME I COMMITTED AN API KEY AND HAD TO REVOKE IT YESTERDAY HAHA
 // My justification: this is a google app script that I pasted directly from my project online

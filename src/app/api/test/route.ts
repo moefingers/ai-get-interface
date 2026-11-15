@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { escapeHtml, HTML_PAGE_HEADERS } from '@/lib/html'
 
 /**
  * Simple test endpoint for debugging
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   </div>
 </body>
 </html>`,
-      { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      { status: 200, headers: HTML_PAGE_HEADERS }
     )
   }
 
@@ -35,11 +36,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   <div style="text-align:center;">
     <h1 style="font-size:4rem;margin:0;">ERR</h1>
     <h2>Everything went wrong!</h2>
-    <p style="color:#8b949e;">good=${good ?? 'undefined'}</p>
+    <p style="color:#8b949e;">good=${escapeHtml(good ?? 'undefined')}</p>
     <a href="?good=true" style="display:inline-block;margin-top:1rem;padding:0.5rem 1rem;background:#3fb950;color:#fff;text-decoration:none;border-radius:6px;">Make things better</a>
   </div>
 </body>
 </html>`,
-    { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    { status: 200, headers: HTML_PAGE_HEADERS }
   )
 }
