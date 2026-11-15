@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { SlidingView, SlidingViewItem } from '@/components/ui/SlidingView'
 import { cn } from '@/lib/cn'
 import { tw } from '@/lib/tw-theme'
+import { safeReturnPath } from '@/lib/return-path'
 
 type AuthTab = 'sign-in' | 'sign-up'
 
@@ -23,7 +24,13 @@ function getTabFromHash(): AuthTab {
 function getReturnUrlFromCookie(): string | null {
   if (typeof document === 'undefined') return null
   const match = document.cookie.match(/(?:^|; )auth_return_to=([^;]*)/)
-  return match ? decodeURIComponent(match[1]) : null
+  if (!match) return null
+  try {
+    return decodeURIComponent(match[1])
+  } catch {
+    // Not valid percent-encoding: return to the home page
+    return '/'
+  }
 }
 
 function clearReturnCookie(): void {
@@ -43,7 +50,7 @@ export function AuthTabs() {
       const returnUrl = getReturnUrlFromCookie()
       if (returnUrl) {
         clearReturnCookie()
-        router.replace(returnUrl)
+        router.replace(safeReturnPath(returnUrl))
       }
     }
   }, [user, mounted, router])

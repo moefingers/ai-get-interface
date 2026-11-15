@@ -73,6 +73,28 @@ export function validateTimeAuth(
   return false
 }
 
+/** Which check a GET /go/[slug]/add request has to pass */
+export type AddAuthCheck =
+  | { kind: 'session' }
+  | { kind: 'token'; token: string }
+  | { kind: 'time-code'; timeCode: string }
+  | { kind: 'missing' }
+
+/**
+ * Picks the check from the list's authMethod first, then the request's params:
+ * a 'session' list uses its signed-in owner's session; every other list ('token',
+ * and older lists with no method or 'google') uses a token, then a time code.
+ */
+export function pickAddAuthCheck(
+  authMethod: string | null,
+  params: { token: string | null; timeCode: string | undefined }
+): AddAuthCheck {
+  if (authMethod === 'session') return { kind: 'session' }
+  if (params.token) return { kind: 'token', token: params.token }
+  if (params.timeCode) return { kind: 'time-code', timeCode: params.timeCode }
+  return { kind: 'missing' }
+}
+
 /**
  * Generates a URL-friendly slug from a string
  * 

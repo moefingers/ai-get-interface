@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { stackServerApp } from '@/stack/server'
 import { syncUser } from '@/lib/sync-user'
 import { getUserLists } from '@/app/lists/actions'
+import { safeReturnPath } from '@/lib/return-path'
 import { HomeClient } from './HomeClient'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -16,10 +17,11 @@ export default async function HomePage() {
   // If authenticated, check for auth return cookie (from session auth flow)
   if (stackUser) {
     const cookieStore = await cookies()
-    const returnUrl = cookieStore.get('auth_return_to')?.value
-    if (returnUrl) {
+    const returnPath = safeReturnPath(cookieStore.get('auth_return_to')?.value)
+    // "/" is this page, so only a path elsewhere on this site redirects
+    if (returnPath !== '/') {
       // Cookie will be cleared by the callback route after successful add
-      redirect(returnUrl)
+      redirect(returnPath)
     }
   }
 

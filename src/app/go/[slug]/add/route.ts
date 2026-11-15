@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { validateTimeAuth } from '@/lib/auth-utils'
+import { pickAddAuthCheck, validateTimeAuth } from '@/lib/auth-utils'
+import { HTML_PAGE_HEADERS, resultPageHtml, type ResultKind } from '@/lib/html'
 import { validateItemData, type ListFieldDefinition } from '@/types/list-fields'
 import { stackServerApp } from '@/stack/server'
 
@@ -29,73 +30,32 @@ const corsHeaders = {
 }
 
 // Helper to create HTML response with CORS (for AI readability)
-function successHtml(message: string, details?: string, listSlug?: string, listName?: string): NextResponse {
-  const listLink = listSlug 
-    ? `<a href="/lists/${listSlug}" style="color:#3fb950;text-decoration:underline;">Go to ${listName || 'list'}</a>` 
-    : ''
-  const response = new NextResponse(
-    `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Success</title></head>
-<body style="background:#0d1117;color:#3fb950;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100dvh;margin:0;">
-  <div style="text-align:center;">
-    <h1 style="font-size:4rem;margin:0;">✓</h1>
-    <h2>${message}</h2>
-    ${details ? `<p style="color:#8b949e;">${details}</p>` : ''}
-    <p style="color:#6e7681;margin-top:2rem;font-size:0.875rem;">You may close this tab. ${listLink}</p>
-  </div>
-</body>
-</html>`,
-    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' } }
-  )
+function htmlResponse(
+  kind: ResultKind,
+  status: number,
+  message: string,
+  details?: string,
+  listSlug?: string,
+  listName?: string
+): NextResponse {
+  const response = new NextResponse(resultPageHtml(kind, message, details, listSlug, listName), {
+    status,
+    headers: { ...corsHeaders, ...HTML_PAGE_HEADERS },
+  })
   response.cookies.set('auth_return_to', '', { maxAge: 0, path: '/' })
   return response
+}
+
+function successHtml(message: string, details?: string, listSlug?: string, listName?: string): NextResponse {
+  return htmlResponse('success', 200, message, details, listSlug, listName)
 }
 
 function warningHtml(message: string, details?: string, listSlug?: string, listName?: string): NextResponse {
-  const listLink = listSlug 
-    ? `<a href="/lists/${listSlug}" style="color:#d29922;text-decoration:underline;">Go to ${listName || 'list'}</a>` 
-    : ''
-  const response = new NextResponse(
-    `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Warning</title></head>
-<body style="background:#0d1117;color:#d29922;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100dvh;margin:0;">
-  <div style="text-align:center;">
-    <h1 style="font-size:4rem;margin:0;">⚠</h1>
-    <h2>${message}</h2>
-    ${details ? `<p style="color:#8b949e;">${details}</p>` : ''}
-    <p style="color:#6e7681;margin-top:2rem;font-size:0.875rem;">You may close this tab. ${listLink}</p>
-  </div>
-</body>
-</html>`,
-    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' } }
-  )
-  response.cookies.set('auth_return_to', '', { maxAge: 0, path: '/' })
-  return response
+  return htmlResponse('warning', 200, message, details, listSlug, listName)
 }
 
 function errorHtml(message: string, details?: string, status: number = 400, listSlug?: string, listName?: string): NextResponse {
-  const listLink = listSlug 
-    ? `<a href="/lists/${listSlug}" style="color:#f85149;text-decoration:underline;">Go to ${listName || 'list'}</a>` 
-    : ''
-  const response = new NextResponse(
-    `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Error</title></head>
-<body style="background:#0d1117;color:#f85149;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100dvh;margin:0;">
-  <div style="text-align:center;">
-    <h1 style="font-size:4rem;margin:0;">✗</h1>
-    <h2>${message}</h2>
-    ${details ? `<p style="color:#8b949e;">${details}</p>` : ''}
-    <p style="color:#6e7681;margin-top:2rem;font-size:0.875rem;">${listLink}</p>
-  </div>
-</body>
-</html>`,
-    { status, headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' } }
-  )
-  response.cookies.set('auth_return_to', '', { maxAge: 0, path: '/' })
-  return response
+  return htmlResponse('error', status, message, details, listSlug, listName)
 }
 
 interface RouteParams {
@@ -140,34 +100,35 @@ export async function GET(
     return errorHtml('List is not active', 'This list has been deactivated', 404, slug, list.name)
   }
 
-  // 5. Validate authentication based on list's authMethod and provided params
+  // 5. Validate authentication: the list's authMethod picks the check, then the params
   let isAuthorized = false
+  const authCheck = pickAddAuthCheck(list.authMethod, { token: staticToken, timeCode })
   
-  if (staticToken) {
+  if (authCheck.kind === 'token') {
     // Static token auth: direct comparison (works for 'token' authMethod)
     isAuthorized = staticToken === list.authToken
     if (!isAuthorized) {
       console.log(`[GO] Invalid static token for list ${slug}`)
       return errorHtml('Invalid token', 'The provided token is incorrect', 401, slug, list.name)
     }
-  } else if (timeCode) {
+  } else if (authCheck.kind === 'time-code') {
     // HMAC time code auth: validate against user's seed (dormant feature)
     isAuthorized = validateTimeAuth(
       list.authToken,
-      timeCode,
+      authCheck.timeCode,
       list.user.toleranceSeconds
     )
     if (!isAuthorized) {
       console.log(`[GO] Invalid time code for list ${slug}`)
       return errorHtml('Invalid or expired code', 'The time code is incorrect or has expired', 401, slug, list.name)
     }
-  } else if (list.authMethod === 'session') {
+  } else if (authCheck.kind === 'session') {
     // Session auth: check if user is logged in and owns this list
     const stackUser = await stackServerApp.getUser()
     
     if (!stackUser) {
-      // Not logged in - store return URL in cookie and redirect to login
-      const returnUrl = request.nextUrl.toString()
+      // Not logged in - store the return path in a cookie and redirect to login
+      const returnUrl = request.nextUrl.pathname + request.nextUrl.search
       const response = NextResponse.redirect(new URL('/auth#sign-in', request.nextUrl.origin))
       response.cookies.set('auth_return_to', returnUrl, {
         httpOnly: false, // Client-side needs to read this
