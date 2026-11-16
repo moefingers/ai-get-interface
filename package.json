@@ -10,7 +10,7 @@
     "test": "node scripts/check-html-and-return-path.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
+    "db:studio": "node -e \"console.error('Prisma Studio is off while Prisma is pinned to 7.9.1, which lacks 7.10.0\\'s localhost-only Studio server. Browse the data in Neon\\'s console. See https://github.com/moefingers/ai-get-interface/issues/7');process.exit(1)\"",
     "db:push": "prisma db push"
   },
   "dependencies": {

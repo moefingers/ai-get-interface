@@ -221,6 +221,8 @@ DATABASE_URL="postgres://...?connect_timeout=15&sslmode=require"
 ## 📋 QUICK REFERENCE
 
 ### Commands
+> **Note (this repo):** Prisma Studio is off here while Prisma is pinned to 7.9.1, which lacks 7.10.0's localhost-only Studio server, so skip `pnpx prisma studio` below and browse the data in Neon's console instead. See [issue #7](https://github.com/moefingers/ai-get-interface/issues/7).
+
 ```bash
 pnpm dev                    # Start dev server
 pnpm build                  # Build (includes prisma generate)
