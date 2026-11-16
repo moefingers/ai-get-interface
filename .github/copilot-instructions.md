@@ -248,7 +248,8 @@ Build → Success? → PUSH
 ```bash
 pnpm dev              # Start dev server (Turbopack)
 pnpm build            # Production build (includes prisma generate)
-pnpm prisma studio    # Visual database editor
+pnpm db:studio        # Visual database editor
+#   Off while Prisma is pinned to 7.9.1, which lacks 7.10.0's localhost-only Studio server: browse the data in Neon's console instead. See https://github.com/moefingers/ai-get-interface/issues/7
 pnpm prisma migrate dev --name <name>  # Create migration
 pnpm prisma generate  # Regenerate client (required after schema changes)
 ```
